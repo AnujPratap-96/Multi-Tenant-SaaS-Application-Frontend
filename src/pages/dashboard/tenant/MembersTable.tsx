@@ -98,14 +98,14 @@ function ActionMenu({ member, tenantId, canManage }: ActionMenuProps) {
       <div className="relative">
         <button
           onClick={() => setOpen((o) => !o)}
-          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+          className="p-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
         >
           <MoreHorizontal className="h-4 w-4" />
         </button>
         {open && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-            <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 py-1 z-20">
+            <div className="absolute right-0 mt-1 w-36 bg-surface-50 dark:bg-neutral-950 rounded-xl shadow-lg border border-neutral-100 dark:border-neutral-800 py-1 z-20">
               {actions.map((a) => (
                 <button
                   key={a.label}
@@ -114,8 +114,8 @@ function ActionMenu({ member, tenantId, canManage }: ActionMenuProps) {
                     a.onClick();
                   }}
                   className={cn(
-                    "w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors",
-                    a.danger ? "text-red-600 dark:text-red-400" : "text-gray-700 dark:text-gray-300"
+                    "w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors",
+                    a.danger ? "text-red-600 dark:text-red-400" : "text-neutral-700 dark:text-neutral-300"
                   )}
                 >
                   <a.icon className="h-3.5 w-3.5" />
@@ -216,18 +216,18 @@ export default function MembersTable() {
 
       <div
         className={cn(
-          "rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden bg-white dark:bg-gray-900",
+          "rounded-xl border border-neutral-100 dark:border-neutral-800 overflow-hidden bg-surface-50 dark:bg-neutral-950",
           isFetching && "opacity-70"
         )}
       >
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
-                <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Member</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Role</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Status</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Joined</th>
+              <tr className="border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/30">
+                <th className="text-left px-4 py-3 font-medium text-neutral-500 dark:text-neutral-400">Member</th>
+                <th className="text-left px-4 py-3 font-medium text-neutral-500 dark:text-neutral-400">Role</th>
+                <th className="text-left px-4 py-3 font-medium text-neutral-500 dark:text-neutral-400">Status</th>
+                <th className="text-left px-4 py-3 font-medium text-neutral-500 dark:text-neutral-400">Joined</th>
                 {canManage && <th className="px-4 py-3 w-10" />}
               </tr>
             </thead>
@@ -244,7 +244,7 @@ export default function MembersTable() {
                 ))
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={canManage ? 5 : 4} className="px-4 py-10 text-center text-gray-400">
+                  <td colSpan={canManage ? 5 : 4} className="px-4 py-10 text-center text-neutral-400">
                     No members found
                   </td>
                 </tr>
@@ -263,7 +263,7 @@ export default function MembersTable() {
                   return (
                     <tr
                       key={m.userId}
-                      className="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-colors"
+                      className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/20 transition-colors"
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
@@ -271,10 +271,10 @@ export default function MembersTable() {
                             {initials}
                           </div>
                           <div className="min-w-0">
-                            <p className="font-medium text-gray-900 dark:text-white truncate">{name}</p>
-                            <p className="text-xs text-gray-500 truncate">{m.user?.email}</p>
+                            <p className="font-medium text-neutral-900 dark:text-neutral-100 truncate">{name}</p>
+                            <p className="text-xs text-neutral-500 truncate">{m.user?.email}</p>
                           </div>
-                          {isSelf && <span className="text-xs text-gray-400">(you)</span>}
+                          {isSelf && <span className="text-xs text-neutral-400">(you)</span>}
                         </div>
                       </td>
 <td className="px-4 py-3">
@@ -318,7 +318,7 @@ export default function MembersTable() {
 
       <Pagination page={page} totalPages={totalPages} onChange={setPage} />
       {total > 0 && (
-        <p className="text-xs text-gray-400 text-right">
+        <p className="text-xs text-neutral-400 text-right">
           {total} total member{total !== 1 ? "s" : ""}
         </p>
       )}

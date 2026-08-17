@@ -115,23 +115,23 @@ function EditUserModal({ open, onClose, user, onSave }: EditUserModalProps) {
     <Modal open={open} onClose={onClose} title="Edit User" size="lg">
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<div>
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
               First Name
             </label>
             <Input value={form.firstName} onChange={set("firstName")} placeholder="First name" />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<div>
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
               Last Name
             </label>
             <Input value={form.lastName} onChange={set("lastName")} placeholder="Last name" />
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Avatar URL
+<div>
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              Avatar URL
           </label>
           <Input
             value={form.avatarUrl}
@@ -141,7 +141,7 @@ function EditUserModal({ open, onClose, user, onSave }: EditUserModalProps) {
         </div>
 
         <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Account</p>
+          <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Account</p>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -150,7 +150,7 @@ function EditUserModal({ open, onClose, user, onSave }: EditUserModalProps) {
               <select
                 value={form.role}
                 onChange={set("role")}
-                className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+                className="w-full h-9 px-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-surface-50 dark:bg-neutral-900 text-sm text-gray-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
               >
                 <option value="admin">Admin</option>
                 <option value="manager">Manager</option>
@@ -164,7 +164,7 @@ function EditUserModal({ open, onClose, user, onSave }: EditUserModalProps) {
               <select
                 value={form.status}
                 onChange={set("status")}
-                className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+                className="w-full h-9 px-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-surface-50 dark:bg-neutral-900 text-sm text-gray-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
               >
                 <option value="active">Active</option>
                 <option value="suspended">Suspended</option>
@@ -174,7 +174,7 @@ function EditUserModal({ open, onClose, user, onSave }: EditUserModalProps) {
         </div>
 
         <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Flags</p>
+          <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Flags</p>
           <div className="flex gap-6">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -183,7 +183,7 @@ function EditUserModal({ open, onClose, user, onSave }: EditUserModalProps) {
                 onChange={set("isActive")}
                 className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               />
-              <span className="text-sm text-gray-700 dark:text-gray-300">User Active</span>
+              <span className="text-sm text-neutral-700 dark:text-neutral-300">User Active</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -192,7 +192,7 @@ function EditUserModal({ open, onClose, user, onSave }: EditUserModalProps) {
                 onChange={set("emailVerified")}
                 className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Email Verified</span>
+              <span className="text-sm text-neutral-700 dark:text-neutral-300">Email Verified</span>
             </label>
           </div>
         </div>
@@ -293,8 +293,8 @@ export default function UsersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Users</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Users</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
             Manage team members and their access.
           </p>
         </div>
@@ -309,20 +309,20 @@ export default function UsersPage() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name or email…"
-            className="w-full pl-9 pr-3 h-9 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+            className="w-full pl-9 pr-3 h-9 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-surface-50 dark:bg-neutral-900 text-sm text-gray-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
           />
         </div>
         <div className="flex gap-2">
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="h-9 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+            className="h-9 px-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-surface-50 dark:bg-neutral-900 text-sm text-gray-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
           >
             {ROLE_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -333,7 +333,7 @@ export default function UsersPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-9 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+            className="h-9 px-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-surface-50 dark:bg-neutral-900 text-sm text-gray-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
           >
             {STATUS_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -345,14 +345,14 @@ export default function UsersPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+      <div className="bg-surface-50 dark:bg-neutral-950 rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
         {isLoading ? (
           <div className="p-12">
             <PageLoader />
           </div>
         ) : !data?.users?.length ? (
-          <div className="p-12 text-center text-gray-500 dark:text-gray-400">
-            <Users className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+          <div className="p-12 text-center text-neutral-500 dark:text-neutral-400">
+            <Users className="h-12 w-12 mx-auto mb-3 text-neutral-300 dark:text-neutral-600" />
             <p className="font-medium">No users found</p>
             <p className="text-sm mt-1">Try adjusting your search or filters.</p>
           </div>
@@ -360,29 +360,29 @@ export default function UsersPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Login</th>
-                  <th className="text-right px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                <tr className="border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/50">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">User</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Role</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Status</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Last Login</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+              <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
                 {data.users.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+                  <tr key={user.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
                     <td className="px-5 py-3.5">
                       <Link to={`/dashboard/users/${user.id}`} className="flex items-center gap-3 group">
                         <div className="h-9 w-9 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-700 dark:text-primary-300 font-semibold text-sm flex-shrink-0">
                           {(user.firstName?.[0] ?? user.email[0]).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors truncate">
+                          <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors truncate">
                             {user.firstName || user.lastName
                               ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
                               : "Unnamed User"}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                          <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">{user.email}</p>
                         </div>
                       </Link>
                     </td>
@@ -392,14 +392,14 @@ export default function UsersPage() {
                     <td className="px-5 py-3.5">
                       <StatusBadge status={user.membershipStatus} isActive={user.isActive} />
                     </td>
-                    <td className="px-5 py-3.5 text-sm text-gray-500 dark:text-gray-400">
+                    <td className="px-5 py-3.5 text-sm text-neutral-500 dark:text-neutral-400">
                       {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : "Never"}
                     </td>
                     <td className="px-5 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => setEditUser(user)}
-                          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                          className="p-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
                           title="Edit user"
                         >
                           <SlidersHorizontal className="h-4 w-4" />

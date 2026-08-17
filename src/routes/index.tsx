@@ -17,7 +17,7 @@ const AcceptInvitePage = lazy(() => import("@/pages/AcceptInvitePage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 const Login = lazy(() => import("@/pages/auth/Login"));
-const Signup = lazy(() => import("@/pages/auth/Signup"));
+const Register = lazy(() => import("@/pages/auth/Register"));
 const VerifyOtp = lazy(() => import("@/pages/auth/VerifyOtp"));
 const ForgotPassword = lazy(() => import("@/pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("@/pages/auth/ResetPassword"));
@@ -50,7 +50,7 @@ export const routes = [
     ),
     children: [
       { path: "/login", element: withLoader(<Login />) },
-      { path: "/signup", element: withLoader(<Signup />) },
+      { path: "/signup", element: withLoader(<Register />) },
       { path: "/verify-otp", element: withLoader(<VerifyOtp />) },
       { path: "/forgot-password", element: withLoader(<ForgotPassword />) },
       { path: "/reset-password", element: withLoader(<ResetPassword />) },

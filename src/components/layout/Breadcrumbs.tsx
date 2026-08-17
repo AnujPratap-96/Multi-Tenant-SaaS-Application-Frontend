@@ -34,21 +34,21 @@ export default function Breadcrumbs() {
   }));
 
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+    <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm text-text-muted">
       {crumbs.map((crumb) => (
         <Fragment key={crumb.href}>
           {!crumb.isLast ? (
             <>
               <Link
                 to={crumb.href}
-                className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                className="hover:text-accent-cyan transition-colors"
               >
                 {crumb.label}
               </Link>
-              <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />
+              <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-text-muted" />
             </>
           ) : (
-            <span className={cn("text-gray-900 dark:text-gray-100 font-medium")}>{crumb.label}</span>
+            <span className={cn("text-text-primary font-medium")}>{crumb.label}</span>
           )}
         </Fragment>
       ))}

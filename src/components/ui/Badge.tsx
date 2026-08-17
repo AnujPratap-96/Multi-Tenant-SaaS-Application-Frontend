@@ -52,7 +52,7 @@ export default function Badge({
   icon,
   className,
 }: {
-  label: string;
+  label?: string;
   variant?: BadgeVariant;
   icon?: ReactNode;
   className?: string;

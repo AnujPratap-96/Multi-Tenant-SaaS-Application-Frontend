@@ -14,7 +14,7 @@ export default function AppLayout() {
   }, [initTheme]);
 
   return (
-    <div className="min-h-screen flex overflow-hidden bg-background dark:bg-dark-background text-foreground dark:text-dark-foreground transition-colors">
+    <div className="min-h-screen flex overflow-hidden bg-canvas">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">

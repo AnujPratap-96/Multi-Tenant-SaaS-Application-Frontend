@@ -67,28 +67,28 @@ function UserSessions({
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+      <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
         <Shield className="h-4 w-4" />
         Active Sessions ({active.length})
       </h3>
       {active.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400">No active sessions.</p>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">No active sessions.</p>
       ) : (
         <div className="space-y-2">
           {active.map((s) => (
             <div
               key={s.id}
-              className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50"
+              className="flex items-center justify-between p-3 rounded-lg border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/50"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="h-8 w-8 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 flex-shrink-0">
                   <SessionIcon ua={s.userAgent} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
                     {parseDevice(s.userAgent)}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
                     {s.ipAddress || "Unknown IP"} ·{" "}
                     {s.createdAt ? new Date(s.createdAt).toLocaleDateString() : "—"}
                   </p>
@@ -108,23 +108,23 @@ function UserSessions({
 
       {revoked.length > 0 && (
         <>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white pt-2">
+          <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 pt-2">
             Revoked Sessions ({revoked.length})
           </h3>
           <div className="space-y-2 opacity-60">
             {revoked.slice(0, 5).map((s) => (
               <div
                 key={s.id}
-                className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800"
+                className="flex items-center gap-3 p-3 rounded-lg border border-neutral-100 dark:border-neutral-800"
               >
-                <div className="h-8 w-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 flex-shrink-0">
+                <div className="h-8 w-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 flex-shrink-0">
                   <SessionIcon ua={s.userAgent} />
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                     {parseDevice(s.userAgent)}
                   </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">
+                  <p className="text-xs text-neutral-400 dark:text-neutral-500">
                     Revoked {s.revokedAt ? new Date(s.revokedAt).toLocaleDateString() : "—"}
                   </p>
                 </div>
@@ -191,27 +191,27 @@ export default function UserDetailPage() {
       {/* Back */}
       <button
         onClick={() => navigate("/dashboard/users")}
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+        className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Users
       </button>
 
       {/* Profile Card */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
-        <div className="flex items-start gap-5">
+<div className="bg-surface-50 dark:bg-neutral-950 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6">
+          <div className="flex items-start gap-5">
           <div className="h-16 w-16 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-700 dark:text-primary-300 font-bold text-2xl flex-shrink-0">
             {(user.firstName?.[0] || user.email[0]).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
                   {user.firstName || user.lastName
                     ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
                     : "Unnamed User"}
                 </h1>
-                <div className="flex items-center gap-2 mt-1 text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex items-center gap-2 mt-1 text-sm text-neutral-500 dark:text-neutral-400">
                   <Mail className="h-3.5 w-3.5" />
                   {user.email}
                 </div>
@@ -221,7 +221,7 @@ export default function UserDetailPage() {
                 variant={(user.membershipRole as BadgeVariant) ?? "default"}
               />
             </div>
-            <div className="flex flex-wrap items-center gap-4 mt-4 text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex flex-wrap items-center gap-4 mt-4 text-xs text-neutral-500 dark:text-neutral-400">
               <div className="flex items-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5" />
                 Joined{" "}
@@ -255,7 +255,7 @@ export default function UserDetailPage() {
 
       {/* Sessions */}
       {user.sessions && user.sessions.length > 0 && (
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+        <div className="bg-surface-50 dark:bg-neutral-950 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6">
           <UserSessions
             sessions={user.sessions}
             onRevoke={(sessionId) => setRevokeTarget(sessionId)}

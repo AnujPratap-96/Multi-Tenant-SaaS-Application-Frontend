@@ -40,13 +40,13 @@ export function Card({ className, variant = "default", children, ...props }: Car
       className={cn(
         // Glass surface with controlled blur - using CSS custom properties
         `rounded-2xl overflow-hidden backdrop-blur-${variant === "glass" ? "xl" : variant === "glassElevated" ? "2xl" : variant === "glassStrong" ? "3xl" : "xl"} ${variant === "glass"
-          ? "bg-white/4 dark:bg-gray-900/40 border border-white/8 dark:border-gray-700/30"
+          ? "bg-surface-50/4 dark:bg-neutral-900/40 border border-neutral-100 dark:border-neutral-700/30"
           : variant === "glassElevated"
-            ? "bg-white/6 dark:bg-gray-900/55 border border-white/12 dark:border-gray-700/40"
+            ? "bg-surface-50/6 dark:bg-neutral-900/55 border border-neutral-100 dark:border-neutral-700/40"
             : variant === "glassStrong"
-              ? "bg-white/3 dark:bg-gray-900/45 border border-white/15 dark:border-gray-700/45"
+              ? "bg-surface-50/3 dark:bg-neutral-900/45 border border-neutral-100 dark:border-gray-700/45"
               : variant === "glassModal"
-                ? "bg-white/8 dark:bg-gray-900/70 border border-white/10 dark:border-gray-700/35"
+                ? "bg-surface-50/8 dark:bg-neutral-900/70 border border-neutral-100 dark:border-gray-700/35"
                 : ""}`,
         "shadow-glass",
         className

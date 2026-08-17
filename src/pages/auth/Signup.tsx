@@ -48,8 +48,8 @@ export default function Signup() {
   return (
     <div className="w-full">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Create an account</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Create an account</h2>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
           Already have an account?{" "}
           <Link to="/login" className="text-primary-600 hover:text-primary-500 font-medium cursor-pointer">
             Log in
@@ -63,7 +63,7 @@ export default function Signup() {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
             Email address
           </label>
           <Input
@@ -80,10 +80,10 @@ export default function Signup() {
 
         <div className="mt-6 relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+            <div className="w-full border-t border-neutral-300 dark:border-neutral-700"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">Or</span>
+            <span className="px-2 bg-surface-50 dark:bg-neutral-900 text-neutral-400">Or</span>
           </div>
         </div>
 

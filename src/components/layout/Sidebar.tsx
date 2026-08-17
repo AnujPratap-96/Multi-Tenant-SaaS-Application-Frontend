@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -54,23 +54,24 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black/30 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-20 bg-midnight-950/30 backdrop-blur-sm lg:hidden"
           onClick={() => setIsOpen(false)}
+          aria-hidden="true"
         />
       )}
 
       <aside className={sidebarClassName}>
         {/* Logo */}
-        <div className="h-14 flex items-center justify-between px-6 border-b border-border dark:border-dark-border flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="bg-primary-600 p-1.5 rounded-lg">
-              <Hexagon className="h-4 w-4 text-white" />
+        <div className="h-16 flex items-center justify-between px-4 border-b border-glass-border/50 flex-shrink-0">
+          <Link to="/dashboard" className="flex items-center gap-2" aria-label="Nexus Dashboard">
+            <div className="bg-gradient-to-br from-accent-cyan to-accent-blue p-2 rounded-xl">
+              <Hexagon className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-bold tracking-tight">Nexus</span>
-          </div>
+            <span className="text-xl font-bold text-text-primary">Nexus</span>
+          </Link>
           <button
             onClick={() => setIsOpen(false)}
-            className="lg:hidden text-muted-foreground hover:text-foreground dark:hover:text-dark-foreground"
+            className="lg:hidden text-text-muted hover:text-text-primary transition-colors"
             aria-label="Close sidebar"
           >
             <X className="h-5 w-5" />
@@ -78,7 +79,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5 ">
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
           {NAV.map((item) => {
             if (item.permission && !hasPermission(item.permission) && !isAdmin) return null;
             return (
@@ -89,10 +90,10 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                     isActive
-                      ? "bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400"
-                      : "text-muted-foreground dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-100"
+                      ? "bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20"
+                      : "text-text-muted hover:bg-tint hover:text-text-primary"
                   )
                 }
               >
@@ -105,8 +106,8 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
         {/* Role badge */}
         {role && (
-          <div className="px-5 py-4 border-t border-border dark:border-dark-border">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300">
+          <div className="px-4 py-4 border-t border-glass-border/50">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/20">
               {role}
             </span>
           </div>

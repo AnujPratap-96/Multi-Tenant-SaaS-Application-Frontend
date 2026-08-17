@@ -4,29 +4,32 @@ import { Input, type InputProps } from "./Input";
 import { cn } from "@/lib/utils";
 
 export const PasswordInput = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, ...props }, ref) => {
+  ({ className, label, hint, leadingIcon, ...props }, ref) => {
     const [show, setShow] = useState(false);
-    const label = show ? "Hide password" : "Show password";
+    const labelText = show ? "Hide password" : "Show password";
 
     return (
-      <div className="relative">
-        <Input
-          ref={ref}
-          type={show ? "text" : "password"}
-          className={cn("pr-10", className)}
-          {...props}
-        />
-        <button
-          type="button"
-          onClick={() => setShow((s) => !s)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
-          tabIndex={-1}
-          aria-label={label}
-          aria-pressed={show}
-        >
-          {show ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
-        </button>
-      </div>
+      <Input
+        ref={ref}
+        type={show ? "text" : "password"}
+        label={label}
+        hint={hint}
+        leadingIcon={leadingIcon}
+        trailingIcon={
+          <button
+            type="button"
+            onClick={() => setShow((s) => !s)}
+            className="text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+            tabIndex={-1}
+            aria-label={labelText}
+            aria-pressed={show}
+          >
+            {show ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
+          </button>
+        }
+        className={cn("pr-10", className)}
+        {...props}
+      />
     );
   }
 );

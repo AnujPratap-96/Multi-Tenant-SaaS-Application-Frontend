@@ -119,10 +119,10 @@ export default function VerifyOtp() {
   return (
     <div className="w-full">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Check your email</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Check your email</h2>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
           We sent a 6-digit code to{" "}
-          <span className="font-medium text-gray-900 dark:text-white">{state.email}</span>
+          <span className="font-medium text-neutral-900 dark:text-neutral-100">{state.email}</span>
         </p>
       </div>
 
@@ -134,7 +134,7 @@ export default function VerifyOtp() {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 text-center">
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1 text-center">
             Verification Code
           </label>
           <Input
@@ -166,7 +166,7 @@ export default function VerifyOtp() {
         <div>
           <Link
             to={backLink}
-            className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+            className="text-sm text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 transition-colors"
           >
             ← Back to {state.purpose === "SIGNUP" ? "sign up" : "login"}
           </Link>

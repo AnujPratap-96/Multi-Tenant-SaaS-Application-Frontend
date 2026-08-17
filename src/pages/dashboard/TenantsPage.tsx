@@ -21,7 +21,7 @@ interface TenantCardProps {
 
 function TenantCard({ tenant, isCurrent, onSwitch, onEdit, onDelete }: TenantCardProps) {
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-5 flex flex-col gap-4 hover:border-primary-200 dark:hover:border-primary-800 transition-colors">
+    <div className="bg-surface-50 dark:bg-neutral-950 rounded-xl border border-neutral-100 dark:border-neutral-800 p-5 flex flex-col gap-4 hover:border-primary-200 dark:hover:border-primary-800 transition-colors">
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -29,8 +29,8 @@ function TenantCard({ tenant, isCurrent, onSwitch, onEdit, onDelete }: TenantCar
             {tenant.name?.[0]?.toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="font-semibold text-gray-900 dark:text-white truncate">{tenant.name}</p>
-            <p className="text-xs text-gray-400 truncate">/{tenant.slug}</p>
+            <p className="font-semibold text-neutral-900 dark:text-neutral-100 truncate">{tenant.name}</p>
+            <p className="text-xs text-neutral-400 truncate">/{tenant.slug}</p>
           </div>
         </div>
         {isCurrent && (
@@ -60,11 +60,11 @@ function TenantCard({ tenant, isCurrent, onSwitch, onEdit, onDelete }: TenantCar
       </div>
 
       {/* Footer actions */}
-      <div className="flex items-center justify-between gap-2 pt-1 border-t border-gray-50 dark:border-gray-800">
+      <div className="flex items-center justify-between gap-2 pt-1 border-t border-neutral-50 dark:border-neutral-800">
         <div className="flex items-center gap-1">
           <button
             onClick={() => onEdit(tenant)}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             title="Edit"
           >
             <Pencil className="h-4 w-4" />
@@ -124,8 +124,8 @@ export default function TenantsPage() {
       {/* Page header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Organizations</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Organizations</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
             Manage all organizations you belong to
           </p>
         </div>
@@ -145,15 +145,15 @@ export default function TenantsPage() {
 
       {/* Empty state */}
       {filtered.length === 0 && (
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-12 flex flex-col items-center justify-center text-center gap-4">
-          <div className="h-14 w-14 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+        <div className="bg-surface-50 dark:bg-neutral-950 rounded-xl border border-neutral-100 dark:border-neutral-800 p-12 flex flex-col items-center justify-center text-center gap-4">
+          <div className="h-14 w-14 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
             <Building2 className="h-7 w-7 text-gray-400" />
           </div>
           <div>
-            <p className="font-semibold text-gray-900 dark:text-white">
+            <p className="font-semibold text-neutral-900 dark:text-neutral-100">
               {search ? "No organizations match your search" : "No organizations yet"}
             </p>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-neutral-500 mt-1">
               {search ? "Try a different name or slug" : "Create your first organization to get started"}
             </p>
           </div>

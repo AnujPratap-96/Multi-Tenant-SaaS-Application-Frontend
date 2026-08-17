@@ -1,93 +1,127 @@
 /**
- * F-23: Theme architecture for the SaaS application.
- * 
+ * Theme architecture for the SaaS application.
+ *
  * Supports:
- * - Light mode (intentionally designed, not just white)
- * - Dark mode (intentionally designed, not just inverted)
+ * - Light mode (intentionally designed)
+ * - Dark mode (primary visual experience - Midnight Aurora)
  * - System theme (respects prefers-color-scheme)
- * 
- * Theme values are centralized in the CSS @theme rules in index.css.
- * Components reference CSS custom properties (--foreground, --background, etc.)
- * rather than hardcoding colors.
- * 
- * Theme flashing prevention: initial theme is applied at module load
- * before any layout renders, based on localStorage or system preference.
+ *
+ * Uses `data-theme` attribute on documentElement for CSS variable switching.
+ * Initial theme is applied at module load (before React renders) to prevent flash.
  */
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export type Theme = "light" | "dark" | "system";
+export type ResolvedTheme = "light" | "dark";
 
 interface ThemeState {
   theme: Theme;
+  resolvedTheme: ResolvedTheme;
   setTheme: (theme: Theme) => void;
+  toggleTheme: () => void;
   initTheme: () => void;
 }
 
-function applyTheme(theme: Theme, doc: Document) {
-  if (theme === "dark") {
+const STORAGE_KEY = "nexus-theme";
+
+function getDocument(): Document | undefined {
+  return typeof document !== "undefined" ? document : undefined;
+}
+
+function resolveSystemTheme(): ResolvedTheme {
+  if (typeof window === "undefined") return "dark";
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function resolveTheme(theme: Theme): ResolvedTheme {
+  if (theme === "system") return resolveSystemTheme();
+  return theme;
+}
+
+function applyResolvedTheme(resolved: ResolvedTheme) {
+  const doc = getDocument();
+  if (!doc) return;
+  doc.documentElement.setAttribute("data-theme", resolved);
+  if (resolved === "dark") {
     doc.documentElement.classList.add("dark");
   } else {
     doc.documentElement.classList.remove("dark");
   }
 }
 
-function resolveInitialTheme(): Theme {
+function readStoredTheme(): Theme {
   try {
-    const saved = localStorage.getItem("theme");
-    if (saved === "light" || saved === "dark") return saved;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === "light" || stored === "dark" || stored === "system") return stored;
   } catch {
-    // ignore storage errors
+    // ignore
   }
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  return "dark"; // Default to dark mode (primary experience)
 }
 
-function applyInitialTheme(doc: Document) {
-  const initial = resolveInitialTheme();
-  applyTheme(initial, doc);
+function persistTheme(theme: Theme) {
+  try {
+    localStorage.setItem(STORAGE_KEY, theme);
+  } catch {
+    // ignore
+  }
 }
 
-function getDocument(): Document | undefined {
-  return typeof document !== "undefined" ? document : undefined;
+function getInitialResolved(): ResolvedTheme {
+  return resolveTheme(readStoredTheme());
+}
+
+// Apply initial theme at module load so public pages are themed
+// before any component mounts or renders.
+if (typeof document !== "undefined") {
+  applyResolvedTheme(getInitialResolved());
 }
 
 export const useThemeStore = create<ThemeState>()(
   persist(
-    (set) => ({
-      theme: "system",
+    (set, get) => ({
+      theme: "dark",
+      resolvedTheme: getInitialResolved(),
+
       setTheme: (theme: Theme) => {
-        set({ theme });
-        const doc = getDocument();
-        if (doc) applyTheme(theme, doc);
+        const resolved = resolveTheme(theme);
+        applyResolvedTheme(resolved);
+        persistTheme(theme);
+        set({ theme, resolvedTheme: resolved });
       },
+
+      toggleTheme: () => {
+        const current = get().resolvedTheme;
+        const next: Theme = current === "dark" ? "light" : "dark";
+        get().setTheme(next);
+      },
+
       initTheme: () => {
-        const doc = getDocument();
-        if (doc) {
-          applyInitialTheme(doc);
-          set({ theme: resolveInitialTheme() });
-        }
+        const stored = readStoredTheme();
+        const resolved = resolveTheme(stored);
+        applyResolvedTheme(resolved);
+        set({ theme: stored, resolvedTheme: resolved });
       },
     }),
     {
-      name: "theme",
+      name: STORAGE_KEY,
       partialize: (state) => ({ theme: state.theme }),
     }
   )
 );
 
-// Initialize theme on mount and subscribe to changes
-useThemeStore.subscribe((state, prev) => {
-  if (state.theme !== prev.theme) {
-    const doc = getDocument();
-    if (doc) applyInitialTheme(doc);
-  }
-});
-
-// Apply initial theme at module load so public pages (Landing, auth) are themed
-// before any layout calls initTheme.
-if (typeof document !== "undefined") {
-  applyInitialTheme(document);
+// Subscribe to system theme changes when in "system" mode
+if (typeof window !== "undefined" && window.matchMedia) {
+  const mql = window.matchMedia("(prefers-color-scheme: dark)");
+  const handler = () => {
+    const state = useThemeStore.getState();
+    if (state.theme === "system") {
+      const resolved = resolveSystemTheme();
+      applyResolvedTheme(resolved);
+      useThemeStore.setState({ resolvedTheme: resolved });
+    }
+  };
+  mql.addEventListener?.("change", handler);
 }

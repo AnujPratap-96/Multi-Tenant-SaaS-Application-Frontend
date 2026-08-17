@@ -58,10 +58,10 @@ const variantColors: Record<ButtonVariant, {
     border: "border-border hover:border-primary/40 dark:hover:border-primary/40 dark:active:border-primary/30",
   },
   glass: {
-    bg: "bg-white/5 dark:bg-gray-900/20 backdrop-blur-md hover:bg-white/10 dark:hover:bg-gray-900/30",
+    bg: "bg-surface-50/5 dark:bg-neutral-900/20 backdrop-blur-md hover:bg-surface-50/10 dark:hover:bg-neutral-900/30",
     fg: "text-foreground dark:text-dark-foreground",
-    hoverBg: "hover:bg-white/10 dark:hover:bg-gray-900/40",
-    activeBg: "active:bg-white/5 dark:active:bg-gray-900/20",
+    hoverBg: "hover:bg-surface-50/10 dark:hover:bg-neutral-900/40",
+    activeBg: "active:bg-surface-50/5 dark:active:bg-neutral-900/20",
     border: "border-border/30 dark:border-border/30 hover:border-primary/40",
   },
   danger: {
