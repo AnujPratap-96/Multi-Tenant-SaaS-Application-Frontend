@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Send } from "lucide-react";
@@ -7,6 +7,7 @@ import { useTenantStore } from "@/features/tenant/tenantStore";
 import Modal from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -25,6 +26,7 @@ export default function InviteMemberModal({ open, onClose }: InviteMemberModalPr
   const create = useCreateInvite(currentTenant?.id ?? "");
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -58,14 +60,21 @@ export default function InviteMemberModal({ open, onClose }: InviteMemberModalPr
         </div>
         <div className="space-y-1">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Role</label>
-          <select
-            {...register("role")}
-            className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-          >
-            <option value="USER">User</option>
-            <option value="MANAGER">Manager</option>
-            <option value="ADMIN">Admin</option>
-          </select>
+          <Controller
+            name="role"
+            control={control}
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="USER">User</option>
+                <option value="MANAGER">Manager</option>
+                <option value="ADMIN">Admin</option>
+              </Select>
+            )}
+          />
         </div>
         <div className="flex gap-3 justify-end pt-2">
           <Button variant="outline" type="button" onClick={onClose}>

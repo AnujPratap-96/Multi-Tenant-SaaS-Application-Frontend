@@ -303,7 +303,7 @@ export default function TasksPage() {
               </option>
             ))}
           </Select>
-          <Button size="lg" onClick={() => setCreateModalOpen(true)} disabled={!selectedProjectId}>
+          <Button size="lg" className="flex-shrink-0" onClick={() => setCreateModalOpen(true)} disabled={!selectedProjectId}>
             <Plus className="h-4 w-4 mr-1.5" /> New Task
           </Button>
         </div>
@@ -416,7 +416,7 @@ export default function TasksPage() {
                             )}
                           </td>
                           <td className="px-4 py-3">
-                            <select
+                            <Select
                               value={task.status}
                               onChange={(e) => handleQuickUpdate(task.id, "status", e.target.value)}
                               className={`text-xs font-medium rounded-lg px-2 py-1 border ${
@@ -430,10 +430,10 @@ export default function TasksPage() {
                                   {STATUS_CONFIG[s].label}
                                 </option>
                               ))}
-                            </select>
+                            </Select>
                           </td>
                           <td className="px-4 py-3">
-                            <select
+                            <Select
                               value={task.priority}
                               onChange={(e) => handleQuickUpdate(task.id, "priority", e.target.value)}
                               className={`text-xs font-medium rounded-lg px-2 py-1 border ${
@@ -445,7 +445,7 @@ export default function TasksPage() {
                                   {p.charAt(0) + p.slice(1).toLowerCase()}
                                 </option>
                               ))}
-                            </select>
+                            </Select>
                           </td>
                           <td className="px-4 py-3">
                             <AssigneeAvatars assignees={task.assignees} />
@@ -633,7 +633,7 @@ export default function TasksPage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Priority
               </label>
-              <select
+              <Select
                 value={createForm.priority}
                 onChange={(e) => setCreateForm({ ...createForm, priority: e.target.value })}
                 className="w-full h-10 px-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
@@ -641,7 +641,7 @@ export default function TasksPage() {
                 <option value="LOW">Low</option>
                 <option value="MEDIUM">Medium</option>
                 <option value="HIGH">High</option>
-              </select>
+              </Select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -685,7 +685,7 @@ export default function TasksPage() {
               <div className="flex flex-wrap items-center gap-3 mt-3">
                 <div className="flex items-center gap-2">
                   <label className="text-xs text-gray-400">Status:</label>
-                  <select
+                  <Select
                     value={detailTask.status}
                     onChange={(e) => handleQuickUpdate(detailTask.id, "status", e.target.value)}
                     className={`text-xs font-medium rounded-lg px-2 py-1 border ${
@@ -699,11 +699,11 @@ export default function TasksPage() {
                         {STATUS_CONFIG[s].label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-xs text-gray-400">Priority:</label>
-                  <select
+                  <Select
                     value={detailTask.priority}
                     onChange={(e) => handleQuickUpdate(detailTask.id, "priority", e.target.value)}
                     className={`text-xs font-medium rounded-lg px-2 py-1 border ${
@@ -715,7 +715,7 @@ export default function TasksPage() {
                         {p.charAt(0) + p.slice(1).toLowerCase()}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-xs text-gray-400">Due:</label>

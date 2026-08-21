@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { GlassButton } from "@/components/glass/GlassButton";
 import { GlassCard } from "@/components/glass/GlassCard";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 interface Feature {
   name: string;
@@ -119,6 +120,7 @@ export default function Landing() {
           </div>
 
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <Link
               to="/login"
               className="hidden sm:block text-sm font-medium text-text-muted hover:text-accent-cyan transition-colors"

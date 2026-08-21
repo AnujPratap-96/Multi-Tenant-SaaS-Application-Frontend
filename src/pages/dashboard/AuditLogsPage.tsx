@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
+import { Select } from "@/components/ui/Select";
 import { useQuery } from "@tanstack/react-query";
 import {
   Search,
@@ -492,7 +493,7 @@ export default function AuditLogsPage() {
             )}
           </div>
 
-          <select
+          <Select
             value={entityType}
             onChange={(e) => setEntityType(e.target.value)}
             className="h-9 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
@@ -502,9 +503,9 @@ export default function AuditLogsPage() {
                 {o.label}
               </option>
             ))}
-          </select>
+          </Select>
 
-          <select
+          <Select
             value={action}
             onChange={(e) => setAction(e.target.value)}
             className="h-9 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition min-w-[140px]"
@@ -514,7 +515,7 @@ export default function AuditLogsPage() {
                 {o.label}
               </option>
             ))}
-          </select>
+          </Select>
 
           <input
             type="datetime-local"

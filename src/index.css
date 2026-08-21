@@ -4,6 +4,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme-aware native <select> popups (the option list is OS-rendered and
+   ignores Tailwind utility classes). Explicit bg/color keeps the open list
+   consistent with the active light/dark theme across browsers. */
+select option {
+  background-color: rgb(var(--c-surface-900));
+  color: rgb(var(--c-ink));
+}
+
 /* ============================================================
    MIDNIGHT AURORA GLASSMORPHISM THEME
    - Deep midnight navy background (primary experience)
@@ -478,8 +486,8 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+    width: 6px;
+    height: 6px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
@@ -487,17 +495,20 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(34, 211, 238, 0.35);
     border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.30);
+    background: rgba(34, 211, 238, 0.55);
+    background-clip: padding-box;
   }
 
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+    scrollbar-color: rgba(34, 211, 238, 0.35) transparent;
   }
 }
 

@@ -1,10 +1,11 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useUpdateTenant } from "@/features/tenant/tenantQueries";
 import Modal from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import type { Tenant } from "@/types/domain";
 
 const schema = z.object({
@@ -24,6 +25,7 @@ export default function EditTenantModal({ open, onClose, tenant }: EditTenantMod
   const update = useUpdateTenant(tenant?.id);
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isDirty },
   } = useForm<EditTenantInput>({
@@ -46,14 +48,21 @@ export default function EditTenantModal({ open, onClose, tenant }: EditTenantMod
         </div>
         <div className="space-y-1">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Plan</label>
-          <select
-            {...register("plan")}
-            className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-          >
-            <option value="FREE">Free</option>
-            <option value="PRO">Pro</option>
-            <option value="ENTERPRISE">Enterprise</option>
-          </select>
+          <Controller
+            name="plan"
+            control={control}
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="FREE">Free</option>
+                <option value="PRO">Pro</option>
+                <option value="ENTERPRISE">Enterprise</option>
+              </Select>
+            )}
+          />
         </div>
         <div className="flex gap-3 justify-end pt-2">
           <Button variant="outline" type="button" onClick={onClose}>

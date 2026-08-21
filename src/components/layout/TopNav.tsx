@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, ChevronDown, LogOut, User, Settings, Plus, Bell } from "lucide-react";
+import { Menu, ChevronDown, LogOut, User, Settings, Plus, Bell, Hexagon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../../features/auth/authStore";
 import { useTenantStore } from "../../features/tenant/tenantStore";
@@ -184,9 +184,8 @@ function NotificationsPanel() {
                 <Link
                   key={n.id}
                   to="#"
-                  className={`flex items-start gap-3 p-3 rounded-xl transition-colors ${
-                    !n.read ? "bg-accent-cyan/5" : ""
-                  } hover:bg-tint`}
+                  className={`flex items-start gap-3 p-3 rounded-xl transition-colors ${!n.read ? "bg-accent-cyan/5" : ""
+                    } hover:bg-tint`}
                   onClick={() => setOpen(false)}
                 >
                   <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${!n.read ? "bg-accent-cyan" : "bg-text-muted"}`} />
@@ -198,15 +197,6 @@ function NotificationsPanel() {
                 </Link>
               ))
             )}
-          </div>
-          <div className="p-3 border-t border-glass-border/50">
-            <Link
-              to="/dashboard/notifications"
-              className="block text-center text-sm text-accent-cyan hover:text-accent-blue font-medium"
-              onClick={() => setOpen(false)}
-            >
-              View all notifications
-            </Link>
           </div>
         </GlassCard>
       )}
@@ -221,19 +211,28 @@ interface TopNavProps {
 export default function TopNav({ setSidebarOpen }: TopNavProps) {
   return (
     <header
-      className="h-14 glass sticky top-0 z-40 border-b border-glass-border/50 flex items-center justify-between px-4 lg:px-6 flex-shrink-0"
+      className="h-14 glass sticky top-0 z-40 border-b border-glass-border/50 flex items-center justify-between pl-4 pr-4 flex-shrink-0"
     >
       <div className="flex items-center gap-3 min-w-0">
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="lg:hidden glass p-2 rounded-xl hover:bg-tint transition-colors"
-          aria-label="Open sidebar"
-        >
-          <Menu className="h-5 w-5 text-text-muted" />
-        </button>
+        {/* Logo block: width matches the sidebar on desktop, with a divider marking that boundary */}
+        <div className="flex items-center  lg:w-60 lg:flex-shrink-0 lg:border-r lg:border-glass-border/60">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="lg:hidden glass p-2 rounded-xl hover:bg-tint transition-colors"
+            aria-label="Open sidebar"
+          >
+            <Menu className="h-5 w-5 text-text-muted" />
+          </button>
+          <Link to="/dashboard" className="flex items-center gap-2 flex-shrink-0" aria-label="Nexus">
+            <div className="bg-gradient-to-br from-accent-cyan to-accent-blue p-2 rounded-xl">
+              <Hexagon className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-text-primary hidden sm:block">Nexus</span>
+          </Link>
+        </div>
         <TenantSwitcher />
         <div className="hidden sm:block h-4 w-px bg-glass-border" />
-        <div className="hidden sm:block">
+        <div className="hidden sm:block min-w-0">
           <Breadcrumbs />
         </div>
       </div>

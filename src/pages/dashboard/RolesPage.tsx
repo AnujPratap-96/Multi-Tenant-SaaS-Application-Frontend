@@ -13,6 +13,7 @@ import {
   ToggleRight,
 } from "lucide-react";
 import { useTenantStore } from "@/features/tenant/tenantStore";
+import { Select } from "@/components/ui/Select";
 import {
   useRoles,
   useRbacUsers,
@@ -183,7 +184,7 @@ function UserRoleAssignment({ tenantId }: { tenantId?: string }) {
                   <Badge label={member.role} variant={(member.role as BadgeVariant) ?? "default"} />
                 </td>
                 <td className="px-4 py-3">
-                  <select
+                  <Select
                     value={member.role}
                     onChange={(e) => updateUserRole.mutate({ userId: member.userId, roleId: e.target.value })}
                     className="text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -193,7 +194,7 @@ function UserRoleAssignment({ tenantId }: { tenantId?: string }) {
                         {r.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </td>
               </tr>
             ))}

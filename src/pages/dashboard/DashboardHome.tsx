@@ -6,6 +6,7 @@ import { useTenantStore } from "@/features/tenant/tenantStore";
 import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from "@/components/glass/GlassCard";
 import { GlassButton } from "@/components/glass/GlassButton";
 import api from "@/lib/axios";
+import { projectsApi } from "@/features/projects/projectsApi";
 import {
   FolderKanban,
   CheckSquare,
@@ -15,7 +16,9 @@ import {
   KanbanSquare,
   Clock,
   ArrowRight,
+  UserPlus,
 } from "lucide-react";
+import type { Project } from "@/types/domain";
 
 interface DashboardStats {
   projects?: { total?: number };
@@ -23,36 +26,52 @@ interface DashboardStats {
   members?: { total?: number };
 }
 
-const STAT_PLACEHOLDER: DashboardStats = {
-  projects: { total: 0 },
-  tasks: { total: 0, DONE: 0 },
-  members: { total: 0 },
-};
-
 interface StatCard {
   label: string;
   value: number | string;
   icon: typeof FolderKanban | typeof CheckSquare | typeof Users | typeof TrendingUp;
-  color: string;
-  trend?: string;
-  trendUp?: boolean;
+  style: string;
 }
 
-interface Project {
+interface AuditLog {
   id: string;
-  name: string;
-  status: string;
-  progress: number;
-  members: number;
-  updatedAt: string;
+  action: string;
+  entityType: string;
+  actor?: { email?: string; firstName?: string; lastName?: string };
+  createdAt: string;
 }
 
-interface RecentActivity {
-  id: string;
-  type: string;
-  description: string;
-  user: string;
-  time: string;
+const ACTION_LABELS: Record<string, string> = {
+  PROJECT_CREATE: "Created project",
+  PROJECT_UPDATE: "Updated project",
+  PROJECT_DELETE: "Deleted project",
+  PROJECT_ARCHIVE: "Archived project",
+  PROJECT_MEMBER_ADD: "Added project member",
+  PROJECT_MEMBER_REMOVE: "Removed project member",
+  TASK_CREATE: "Created task",
+  TASK_UPDATE: "Updated task",
+  TASK_DELETE: "Deleted task",
+  TASK_STATUS_CHANGE: "Changed task status",
+  ADD_MEMBER: "Added member",
+  REMOVE_MEMBER: "Removed member",
+  INVITE: "Invited user",
+  ROLE_CHANGE: "Changed role",
+  CREATE: "Created",
+  UPDATE: "Updated",
+  DELETE: "Deleted",
+};
+
+function timeAgo(iso?: string): string {
+  if (!iso) return "—";
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString();
 }
 
 export default function DashboardHome() {
@@ -64,18 +83,18 @@ export default function DashboardHome() {
     queryKey: ["dashboard", "stats", currentTenant?.id],
     queryFn: () => api.get("/dashboard").then((r) => r.data.data as DashboardStats),
     enabled: !!currentTenant?.id,
-    placeholderData: STAT_PLACEHOLDER,
   });
 
   const { data: recentProjects } = useQuery<Project[]>({
     queryKey: ["dashboard", "recent-projects", currentTenant?.id],
-    queryFn: () => api.get("/dashboard/recent-projects").then((r) => r.data.data),
+    queryFn: () => projectsApi.list({ limit: 5 }).then((r) => r.projects),
     enabled: !!currentTenant?.id,
   });
 
-  const { data: recentActivity } = useQuery<RecentActivity[]>({
+  const { data: recentActivity } = useQuery<AuditLog[]>({
     queryKey: ["dashboard", "recent-activity", currentTenant?.id],
-    queryFn: () => api.get("/dashboard/recent-activity").then((r) => r.data.data),
+    queryFn: () =>
+      api.get("/audit-logs?limit=5").then((r) => (r.data.data?.logs as AuditLog[]) ?? []),
     enabled: !!currentTenant?.id,
   });
 
@@ -84,34 +103,33 @@ export default function DashboardHome() {
       label: "Projects",
       value: stats?.projects?.total ?? "—",
       icon: FolderKanban,
-      color: "accent-cyan",
-      trend: "+12%",
-      trendUp: true,
+      style: "bg-accent-cyan/10 text-accent-cyan",
     },
     {
       label: "Tasks",
       value: stats?.tasks?.total ?? "—",
       icon: CheckSquare,
-      color: "accent-blue",
-      trend: "+8%",
-      trendUp: true,
+      style: "bg-accent-blue/10 text-accent-blue",
     },
     {
       label: "Team Members",
       value: stats?.members?.total ?? "—",
       icon: Users,
-      color: "accent-indigo",
-      trend: "+3",
-      trendUp: true,
+      style: "bg-accent-indigo/10 text-accent-indigo",
     },
     {
       label: "Completed",
       value: stats?.tasks?.DONE ?? "—",
       icon: TrendingUp,
-      color: "success",
-      trend: "+15%",
-      trendUp: true,
+      style: "bg-success/10 text-success",
     },
+  ];
+
+  const quickActions = [
+    { label: "Create Project", icon: KanbanSquare, style: "bg-accent-cyan/10 text-accent-cyan", href: "/dashboard/projects" },
+    { label: "New Task", icon: CheckSquare, style: "bg-accent-blue/10 text-accent-blue", href: "/dashboard/tasks" },
+    { label: "Invite Member", icon: UserPlus, style: "bg-accent-indigo/10 text-accent-indigo", href: "/dashboard/team" },
+    { label: "View Activity", icon: TrendingUp, style: "bg-success/10 text-success", href: "/dashboard/audit-logs" },
   ];
 
   return (
@@ -138,12 +156,16 @@ export default function DashboardHome() {
           )}
         </div>
         <div className="flex items-center gap-3">
-          <GlassButton variant="outline" leadingIcon={<KanbanSquare className="h-4 w-4" />}>
-            View All Projects
-          </GlassButton>
-          <GlassButton trailingIcon={<ArrowRight className="h-4 w-4" />}>
-            New Project
-          </GlassButton>
+          <Link to="/dashboard/projects">
+            <GlassButton variant="outline" leadingIcon={<KanbanSquare className="h-4 w-4" />}>
+              View All Projects
+            </GlassButton>
+          </Link>
+          <Link to="/dashboard/projects">
+            <GlassButton trailingIcon={<ArrowRight className="h-4 w-4" />}>
+              New Project
+            </GlassButton>
+          </Link>
         </div>
       </motion.div>
 
@@ -168,19 +190,11 @@ export default function DashboardHome() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-sm font-medium text-text-muted">{s.label}</p>
-                    <div className={`bg-${s.color}/10 text-${s.color} p-2 rounded-xl`}>
+                    <div className={`${s.style} p-2 rounded-xl`}>
                       <s.icon className="h-5 w-5" />
                     </div>
                   </div>
                   <p className="text-3xl font-bold text-text-primary">{s.value}</p>
-                  {s.trend && (
-                    <div className="mt-2 flex items-center gap-1">
-                      <TrendingUp className={`h-3.5 w-3.5 ${s.trendUp ? "text-success-500" : "text-danger-500"}`} />
-                      <span className={`text-xs font-medium ${s.trendUp ? "text-success-500" : "text-danger-500"}`}>
-                        {s.trend} vs last month
-                      </span>
-                    </div>
-                  )}
                 </div>
               </GlassCardContent>
             </GlassCard>
@@ -208,66 +222,53 @@ export default function DashboardHome() {
                   <p className="text-sm text-text-muted">Track progress across your active projects</p>
                 </div>
               </div>
-              <GlassButton variant="ghost" size="sm" leadingIcon={<ArrowRight className="h-3.5 w-3.5" />}>
-                View All
-              </GlassButton>
+              <Link to="/dashboard/projects">
+                <GlassButton variant="ghost" size="sm" leadingIcon={<ArrowRight className="h-3.5 w-3.5" />}>
+                  View All
+                </GlassButton>
+              </Link>
             </GlassCardHeader>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-text-muted border-b border-glass-border/50">
-                    <th className="px-5 py-3 font-medium">Project</th>
-                    <th className="px-5 py-3 font-medium">Status</th>
-                    <th className="px-5 py-3 font-medium">Progress</th>
-                    <th className="px-5 py-3 font-medium">Team</th>
-                    <th className="px-5 py-3 font-medium">Updated</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(recentProjects && recentProjects.length > 0 ? recentProjects : [
-                    { id: "1", name: "Website Redesign", status: "Active", progress: 65, members: 8, updatedAt: "2h ago" },
-                    { id: "2", name: "Mobile App v2.0", status: "Active", progress: 42, members: 12, updatedAt: "5h ago" },
-                    { id: "3", name: "API Migration", status: "Review", progress: 90, members: 5, updatedAt: "1d ago" },
-                    { id: "4", name: "Analytics Dashboard", status: "Planning", progress: 15, members: 4, updatedAt: "2d ago" },
-                    { id: "5", name: "Auth System Refactor", status: "Active", progress: 30, members: 6, updatedAt: "3d ago" },
-                  ]).map((project) => (
-                    <tr key={project.id} className="border-b border-glass-border/30 last:border-0 hover:bg-tint transition-colors">
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`bg-${project.status === "Active" ? "accent-cyan" : project.status === "Review" ? "accent-blue" : "accent-violet"}/10 text-${project.status === "Active" ? "accent-cyan" : project.status === "Review" ? "accent-blue" : "accent-violet"} p-1.5 rounded-lg`}>
-                            <FolderKanban className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-text-primary">{project.name}</p>
-                            <p className="text-xs text-text-muted">{project.members} members</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
-                          project.status === "Active"
-                            ? "bg-accent-cyan/15 text-accent-cyan"
-                            : project.status === "Review"
-                            ? "bg-accent-blue/15 text-accent-blue"
-                            : "bg-accent-violet/15 text-accent-violet"
-                        }`}>
-                          {project.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4">
-                        <div className="w-32 h-1.5 bg-glass-border rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-accent-cyan to-accent-blue rounded-full transition-all duration-500"
-                            style={{ width: `${project.progress}%` }}
-                          />
-                        </div>
-                      </td>
-                      <td className="px-5 py-4 text-text-secondary">{project.members}</td>
-                      <td className="px-5 py-4 text-text-muted">{project.updatedAt}</td>
+              {recentProjects && recentProjects.length > 0 ? (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-text-muted border-b border-glass-border/50">
+                      <th className="px-5 py-3 font-medium">Project</th>
+                      <th className="px-5 py-3 font-medium">Team</th>
+                      <th className="px-5 py-3 font-medium">Updated</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {recentProjects.map((project) => (
+                      <tr key={project.id} className="border-b border-glass-border/30 last:border-0 hover:bg-tint transition-colors">
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-accent-cyan/10 text-accent-cyan p-1.5 rounded-lg">
+                              <FolderKanban className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-text-primary">{project.name}</p>
+                              <p className="text-xs text-text-muted">{project.description || "No description"}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 text-text-secondary">{project.members?.length ?? 0}</td>
+                        <td className="px-5 py-4 text-text-muted">{timeAgo(project.updatedAt)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="p-8 text-center text-text-muted">
+                  <KanbanSquare className="h-12 w-12 mx-auto text-text-muted/30 mb-4" />
+                  <p className="text-text-muted">No projects yet</p>
+                  <Link to="/dashboard/projects" className="mt-3 inline-block">
+                    <GlassButton size="sm" leadingIcon={<KanbanSquare className="h-3.5 w-3.5" />}>
+                      Create Project
+                    </GlassButton>
+                  </Link>
+                </div>
+              )}
             </div>
           </GlassCard>
         </div>
@@ -288,18 +289,13 @@ export default function DashboardHome() {
               </div>
             </GlassCardHeader>
             <GlassCardContent className="px-5 pb-5 space-y-2">
-              {[
-                { label: "Create Project", icon: KanbanSquare, color: "accent-cyan", href: "/dashboard/projects/new" },
-                { label: "New Task", icon: CheckSquare, color: "accent-blue", href: "/dashboard/tasks/new" },
-                { label: "Invite Member", icon: Users, color: "accent-indigo", href: "/dashboard/team/invite" },
-                { label: "View Reports", icon: TrendingUp, color: "success", href: "/dashboard/analytics" },
-              ].map((action) => (
+              {quickActions.map((action) => (
                 <Link
                   key={action.label}
                   to={action.href}
                   className="flex items-center gap-3 p-3 rounded-xl glass hover:border-accent-cyan/30 hover:bg-accent-cyan/5 transition-all duration-200 group"
                 >
-                  <div className={`bg-${action.color}/10 text-${action.color} p-2 rounded-lg`}>
+                  <div className={`${action.style} p-2 rounded-lg`}>
                     <action.icon className="h-4.5 w-4.5" />
                   </div>
                   <span className="font-medium text-text-primary group-hover:text-accent-cyan transition-colors">{action.label}</span>
@@ -323,24 +319,44 @@ export default function DashboardHome() {
               </div>
             </GlassCardHeader>
             <GlassCardContent className="px-5 pb-5 space-y-3">
-              {(recentActivity && recentActivity.length > 0 ? recentActivity : [
-                { id: "1", type: "project", description: "Website Redesign progress updated to 65%", user: "Sarah Chen", time: "2 min ago" },
-                { id: "2", type: "task", description: "New task \"Design system audit\" assigned to you", user: "Marcus Johnson", time: "1 hour ago" },
-                { id: "3", type: "member", description: "Emily Rodriguez joined the team", user: "System", time: "3 hours ago" },
-                { id: "4", type: "project", description: "API Migration moved to Review", user: "David Park", time: "1 day ago" },
-              ]).map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-tint transition-colors">
-                  <div className={`bg-${activity.type === "project" ? "accent-cyan" : activity.type === "task" ? "accent-blue" : "accent-indigo"}/10 text-${activity.type === "project" ? "accent-cyan" : activity.type === "task" ? "accent-blue" : "accent-indigo"} p-1.5 rounded-lg flex-shrink-0 mt-0.5`}>
-                    {activity.type === "project" && <KanbanSquare className="h-3.5 w-3.5" />}
-                    {activity.type === "task" && <CheckSquare className="h-3.5 w-3.5" />}
-                    {activity.type === "member" && <Users className="h-3.5 w-3.5" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-text-secondary">{activity.description}</p>
-                    <p className="text-xs text-text-muted">{activity.user} · {activity.time}</p>
-                  </div>
+              {recentActivity && recentActivity.length > 0 ? (
+                recentActivity.map((activity) => {
+                  const entityStyle =
+                    activity.entityType === "PROJECT"
+                      ? "bg-accent-cyan/10 text-accent-cyan"
+                      : activity.entityType === "TASK"
+                      ? "bg-accent-blue/10 text-accent-blue"
+                      : "bg-accent-indigo/10 text-accent-indigo";
+                  const EntityIcon =
+                    activity.entityType === "PROJECT"
+                      ? KanbanSquare
+                      : activity.entityType === "TASK"
+                      ? CheckSquare
+                      : Users;
+                  const actor =
+                    (activity.actor?.firstName
+                      ? `${activity.actor.firstName} ${activity.actor.lastName ?? ""}`.trim()
+                      : activity.actor?.email) || "System";
+                  return (
+                    <div key={activity.id} className="flex items-start gap-3 p-2.5 rounded-lg hover:bg-tint transition-colors">
+                      <div className={`${entityStyle} p-1.5 rounded-lg flex-shrink-0 mt-0.5`}>
+                        <EntityIcon className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-text-primary truncate">
+                          {ACTION_LABELS[activity.action] || activity.action}
+                        </p>
+                        <p className="text-xs text-text-muted mt-0.5">{actor} · {timeAgo(activity.createdAt)}</p>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="p-6 text-center text-text-muted">
+                  <Clock className="h-10 w-10 mx-auto text-text-muted/30 mb-3" />
+                  <p className="text-text-muted">No recent activity</p>
                 </div>
-              ))}
+              )}
             </GlassCardContent>
           </GlassCard>
         </div>

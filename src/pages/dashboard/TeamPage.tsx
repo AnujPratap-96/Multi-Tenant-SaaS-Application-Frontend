@@ -13,6 +13,7 @@ import type { MemberUpdateInput } from "@/features/tenant/tenantApi";
 import Badge from "@/components/ui/Badge";
 import Pagination from "@/components/ui/Pagination";
 import Modal from "@/components/ui/Modal";
+import { Select } from "@/components/ui/Select";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -83,7 +84,7 @@ function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) 
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
-          <select
+          <Select
             value={role}
             onChange={(e) => setRole(e.target.value)}
             className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
@@ -91,7 +92,7 @@ function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) 
             <option value="admin">Admin</option>
             <option value="manager">Manager</option>
             <option value="user">User</option>
-          </select>
+          </Select>
         </div>
         <div className="flex gap-3 justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
           <Button type="button" variant="outline" onClick={onClose}>
@@ -141,7 +142,7 @@ function EditRoleModal({ open, onClose, member, onSave }: EditRoleModalProps) {
         </p>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
-          <select
+          <Select
             value={role}
             onChange={(e) => setRole(e.target.value)}
             className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
@@ -149,7 +150,7 @@ function EditRoleModal({ open, onClose, member, onSave }: EditRoleModalProps) {
             <option value="admin">Admin</option>
             <option value="manager">Manager</option>
             <option value="user">User</option>
-          </select>
+          </Select>
         </div>
         <div className="flex gap-3 justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
           <Button type="button" variant="outline" onClick={onClose}>
@@ -241,7 +242,7 @@ export default function TeamPage() {
             className="w-full pl-9 pr-3 h-9 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
           />
         </div>
-        <select
+        <Select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
           className="h-9 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
@@ -251,8 +252,8 @@ export default function TeamPage() {
               {o.label}
             </option>
           ))}
-        </select>
-        <select
+        </Select>
+        <Select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
           className="h-9 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
@@ -262,7 +263,7 @@ export default function TeamPage() {
               {o.label}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       {/* Table */}

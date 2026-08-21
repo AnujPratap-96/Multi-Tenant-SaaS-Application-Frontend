@@ -10,6 +10,7 @@ import Modal from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
 import PageLoader from "@/components/ui/PageLoader";
 import { toast } from "sonner";
 import type { ApiError } from "@/types/domain";
@@ -147,7 +148,7 @@ function EditUserModal({ open, onClose, user, onSave }: EditUserModalProps) {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Role
               </label>
-              <select
+              <Select
                 value={form.role}
                 onChange={set("role")}
                 className="w-full h-9 px-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-surface-50 dark:bg-neutral-900 text-sm text-gray-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
@@ -155,20 +156,20 @@ function EditUserModal({ open, onClose, user, onSave }: EditUserModalProps) {
                 <option value="admin">Admin</option>
                 <option value="manager">Manager</option>
                 <option value="user">User</option>
-              </select>
+              </Select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Membership
               </label>
-              <select
+              <Select
                 value={form.status}
                 onChange={set("status")}
                 className="w-full h-9 px-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-surface-50 dark:bg-neutral-900 text-sm text-gray-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
               >
                 <option value="active">Active</option>
                 <option value="suspended">Suspended</option>
-              </select>
+              </Select>
             </div>
           </div>
         </div>
@@ -319,7 +320,7 @@ export default function UsersPage() {
           />
         </div>
         <div className="flex gap-2">
-          <select
+          <Select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
             className="h-9 px-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-surface-50 dark:bg-neutral-900 text-sm text-gray-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
@@ -329,8 +330,8 @@ export default function UsersPage() {
                 {o.label}
               </option>
             ))}
-          </select>
-          <select
+          </Select>
+          <Select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="h-9 px-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-surface-50 dark:bg-neutral-900 text-sm text-gray-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
@@ -340,7 +341,7 @@ export default function UsersPage() {
                 {o.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 

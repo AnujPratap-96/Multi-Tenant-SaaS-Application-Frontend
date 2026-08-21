@@ -18,8 +18,10 @@ const sizes = { sm: "max-w-sm", md: "max-w-md", lg: "max-w-lg", xl: "max-w-2xl" 
 export function Dialog({ open, onClose, title, description, children, size = "md", className }: DialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
 
   useEffect(() => {
+    onCloseRef.current = onClose;
     if (!open) return;
 
     previouslyFocused.current = document.activeElement as HTMLElement | null;
@@ -28,7 +30,7 @@ export function Dialog({ open, onClose, title, description, children, size = "md
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.stopPropagation();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== "Tab" || !panel) return;
@@ -53,7 +55,14 @@ export function Dialog({ open, onClose, title, description, children, size = "md
     document.addEventListener("keydown", handleKeyDown);
     document.body.style.overflow = "hidden";
     const focusTimer = setTimeout(() => {
-      (panel?.querySelector<HTMLElement>("input, select, textarea, button") ?? panel)?.focus();
+      const firstField = panel?.querySelector<HTMLElement>(
+        "input:not([disabled]), textarea:not([disabled]), select:not([disabled])"
+      );
+      (firstField ??
+        panel?.querySelector<HTMLElement>(
+          "a[href], button:not([disabled]), [tabindex]:not([tabindex='-1'])"
+        ) ??
+        panel)?.focus();
     }, 0);
 
     return () => {
@@ -62,7 +71,7 @@ export function Dialog({ open, onClose, title, description, children, size = "md
       clearTimeout(focusTimer);
       previouslyFocused.current?.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 

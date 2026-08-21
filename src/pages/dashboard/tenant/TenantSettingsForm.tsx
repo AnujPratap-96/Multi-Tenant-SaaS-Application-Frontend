@@ -1,10 +1,11 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTenantSettings, useUpdateSettings } from "@/features/tenant/tenantQueries";
 import { useTenantStore } from "@/features/tenant/tenantStore";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 
 const schema = z.object({
   allowPublicSignup: z.boolean().optional(),
@@ -21,6 +22,7 @@ export default function TenantSettingsForm() {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isDirty },
   } = useForm<SettingsValues>({
@@ -40,14 +42,21 @@ export default function TenantSettingsForm() {
       </div>
       <div className="space-y-1">
         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Default Role</label>
-        <select
-          {...register("defaultRole")}
-          className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-        >
-          <option value="USER">User</option>
-          <option value="MANAGER">Manager</option>
-          <option value="ADMIN">Admin</option>
-        </select>
+          <Controller
+            name="defaultRole"
+            control={control}
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="USER">User</option>
+                <option value="MANAGER">Manager</option>
+                <option value="ADMIN">Admin</option>
+              </Select>
+            )}
+          />
       </div>
       <div className="flex items-center gap-3">
         <input

@@ -27,7 +27,7 @@ interface RoleSelectProps {
 function RoleSelect({ member, tenantId, disabled }: RoleSelectProps) {
   const update = useUpdateMember(tenantId ?? "");
   return (
-    <select
+    <Select
       value={member.role}
       disabled={disabled || update.isPending}
       onChange={(e) => update.mutate({ userId: member.userId, data: { role: e.target.value } })}
@@ -38,7 +38,7 @@ function RoleSelect({ member, tenantId, disabled }: RoleSelectProps) {
           {r}
         </option>
       ))}
-    </select>
+    </Select>
   );
 }
 

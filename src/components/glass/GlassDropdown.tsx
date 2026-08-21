@@ -1,88 +1,119 @@
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
+interface GlassDropdownContextValue {
+  close: () => void;
+}
+const GlassDropdownContext = createContext<GlassDropdownContextValue | null>(null);
+
 interface GlassDropdownProps {
-  trigger: React.ReactNode;
-  children: React.ReactNode;
+  trigger: ReactNode;
+  children: ReactNode;
   align?: "left" | "right";
 }
 
 export function GlassDropdown({ trigger, children, align = "left" }: GlassDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0, right: 0, width: 0 });
   const triggerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const open = () => {
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (rect) {
+      setCoords({ top: rect.bottom + 8, left: rect.left, right: rect.right, width: rect.width });
+    }
+    setIsOpen(true);
+  };
+  const close = () => setIsOpen(false);
+  const toggle = () => (isOpen ? close() : open());
+
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    if (!isOpen) return;
+    const onPointerDown = (e: MouseEvent) => {
       if (
         triggerRef.current &&
         !triggerRef.current.contains(e.target as Node) &&
         dropdownRef.current &&
         !dropdownRef.current.contains(e.target as Node)
       ) {
-        setIsOpen(false);
+        close();
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsOpen(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
     };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+    const onScroll = () => close();
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onScroll, true);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onScroll, true);
+    };
+  }, [isOpen]);
+
+  const positionStyle: CSSProperties =
+    align === "right"
+      ? { top: coords.top, right: typeof window !== "undefined" ? window.innerWidth - coords.right : 0, minWidth: Math.max(coords.width, 180) }
+      : { top: coords.top, left: coords.left, minWidth: Math.max(coords.width, 180) };
 
   return (
-    <div className="relative inline-block" ref={triggerRef}>
-      <div onClick={() => setIsOpen((o) => !o)}>{trigger}</div>
+    <GlassDropdownContext.Provider value={{ close }}>
+      <div className="relative inline-block" ref={triggerRef}>
+        <div onClick={toggle}>{trigger}</div>
 
-      <AnimatePresence>
-        {isOpen && createPortal(
-          <motion.div
-            ref={dropdownRef}
-            initial={{ opacity: 0, y: -8, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.95 }}
-            transition={{ type: "spring", damping: 30, stiffness: 400 }}
-            className={cn(
-              "glass-strong fixed z-[99] min-w-[180px] rounded-xl p-1 shadow-glass-lg",
-              align === "right" ? "right-0" : "left-0"
+        {createPortal(
+          <AnimatePresence>
+            {isOpen && (
+              <motion.div
+                ref={dropdownRef}
+                key="glass-dropdown"
+                initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                transition={{ type: "spring", damping: 30, stiffness: 400 }}
+                style={positionStyle}
+                className="glass-strong fixed z-[100] rounded-xl p-1 shadow-glass-lg"
+                role="menu"
+              >
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col gap-0.5"
+                >
+                  {children}
+                </motion.div>
+              </motion.div>
             )}
-            role="menu"
-          >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col gap-0.5"
-            >
-              {children}
-            </motion.div>
-          </motion.div>,
+          </AnimatePresence>,
           document.body
         )}
-      </AnimatePresence>
-    </div>
+      </div>
+    </GlassDropdownContext.Provider>
   );
 }
 
 interface GlassDropdownItemProps {
   onClick?: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
   disabled?: boolean;
   className?: string;
 }
 
 export function GlassDropdownItem({ onClick, children, disabled, className }: GlassDropdownItemProps) {
+  const ctx = useContext(GlassDropdownContext);
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={() => {
+        onClick?.();
+        ctx?.close();
+      }}
       disabled={disabled}
       role="menuitem"
       className={cn(
@@ -99,7 +130,7 @@ export function GlassDropdownItem({ onClick, children, disabled, className }: Gl
 
 interface GlassDropdownSectionProps {
   title?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function GlassDropdownSection({ title, children }: GlassDropdownSectionProps) {

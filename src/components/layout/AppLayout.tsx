@@ -14,13 +14,13 @@ export default function AppLayout() {
   }, [initTheme]);
 
   return (
-    <div className="min-h-screen flex overflow-hidden bg-canvas">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+    <div className="h-screen flex flex-col overflow-hidden bg-canvas">
+      <TopNav setSidebarOpen={setSidebarOpen} />
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <TopNav setSidebarOpen={setSidebarOpen} />
+      <div className="flex-1 flex min-w-0 overflow-hidden">
+        <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
-        <main className="flex-1 overflow-auto p-6 md:p-8">
+        <main className="flex-1 overflow-auto p-6 md:p-8 lg:pl-72">
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>
