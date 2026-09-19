@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, ChevronDown, LogOut, User, Settings, Plus, Bell, Hexagon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Menu, ChevronDown, LogOut, User, Settings, Plus, Bell, Hexagon, Search, CheckSquare, FolderKanban } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../features/auth/authStore";
 import { useTenantStore } from "../../features/tenant/tenantStore";
+import { useCommandPaletteStore } from "@/features/command-palette/commandPaletteStore";
 import {
   useNotifications,
   useUnreadCount,
@@ -17,6 +18,7 @@ import ThemeToggle from "../ui/ThemeToggle";
 import { useToast } from "@/context/useToast";
 
 function TenantSwitcher() {
+  const navigate = useNavigate();
   const { tenants, currentTenant, setCurrentTenant } = useTenantStore();
 
   return (
@@ -52,7 +54,7 @@ function TenantSwitcher() {
       <GlassDropdownDivider />
       <GlassDropdownItem
         onClick={() => {
-          // Navigate to create tenant
+          navigate("/dashboard/tenants");
         }}
       >
         <Plus className="h-4 w-4" />
@@ -257,16 +259,19 @@ interface TopNavProps {
 }
 
 export default function TopNav({ setSidebarOpen }: TopNavProps) {
+  const navigate = useNavigate();
+  const openCommandPalette = useCommandPaletteStore((s) => s.open);
+
   return (
     <header
       className="h-14 glass sticky top-0 z-40 border-b border-glass-border/50 flex items-center justify-between pl-4 pr-4 flex-shrink-0"
     >
       <div className="flex items-center gap-3 min-w-0">
         {/* Logo block: width matches the sidebar on desktop, with a divider marking that boundary */}
-        <div className="flex items-center  lg:w-60 lg:flex-shrink-0 lg:border-r lg:border-glass-border/60">
+        <div className="flex items-center lg:w-60 lg:flex-shrink-0 lg:border-r lg:border-glass-border/60">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden glass p-2 rounded-xl hover:bg-tint transition-colors"
+            className="lg:hidden glass p-2 rounded-xl hover:bg-tint transition-colors mr-2"
             aria-label="Open sidebar"
           >
             <Menu className="h-5 w-5 text-text-muted" />
@@ -280,12 +285,51 @@ export default function TopNav({ setSidebarOpen }: TopNavProps) {
         </div>
         <TenantSwitcher />
         <div className="hidden sm:block h-4 w-px bg-glass-border" />
-        <div className="hidden sm:block min-w-0">
+        <div className="hidden xl:block min-w-0">
           <Breadcrumbs />
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      {/* Center / Right controls */}
+      <div className="flex items-center gap-2.5">
+        {/* Command Palette Trigger */}
+        <button
+          onClick={openCommandPalette}
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl glass border-glass-border/60 hover:border-accent-cyan/40 text-text-muted hover:text-text-primary transition-all duration-200 text-xs shadow-sm"
+          title="Search or Jump to (⌘K)"
+        >
+          <Search className="h-3.5 w-3.5 text-accent-cyan" />
+          <span className="hidden lg:inline text-text-muted">Search or jump to...</span>
+          <span className="lg:hidden text-text-muted">Search</span>
+          <kbd className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-surface-800 text-text-muted border border-glass-border">⌘K</kbd>
+        </button>
+
+        {/* Quick Create Dropdown */}
+        <GlassDropdown
+          trigger={
+            <GlassButton variant="primary" size="sm" className="hidden sm:flex h-8 px-2.5 gap-1 text-xs font-semibold">
+              <Plus className="h-3.5 w-3.5" />
+              <span>Create</span>
+            </GlassButton>
+          }
+          align="right"
+        >
+          <GlassDropdownSection title="Quick Create">
+            <GlassDropdownItem onClick={() => navigate("/dashboard/tasks")}>
+              <CheckSquare className="h-4 w-4 text-accent-cyan mr-2" />
+              New Task
+            </GlassDropdownItem>
+            <GlassDropdownItem onClick={() => navigate("/dashboard/projects")}>
+              <FolderKanban className="h-4 w-4 text-accent-blue mr-2" />
+              New Project
+            </GlassDropdownItem>
+            <GlassDropdownItem onClick={() => navigate("/dashboard/team")}>
+              <User className="h-4 w-4 text-accent-indigo mr-2" />
+              Invite Member
+            </GlassDropdownItem>
+          </GlassDropdownSection>
+        </GlassDropdown>
+
         <ThemeToggle />
         <NotificationsPanel />
         <ProfileDropdown />

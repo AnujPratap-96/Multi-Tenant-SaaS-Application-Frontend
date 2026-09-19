@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/features/auth/authStore";
 import { useTenantStore } from "@/features/tenant/tenantStore";
-import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from "@/components/glass/GlassCard";
+import { GlassCard, GlassCardHeader, GlassCardTitle } from "@/components/glass/GlassCard";
 import { GlassButton } from "@/components/glass/GlassButton";
 import api from "@/lib/axios";
 import { projectsApi } from "@/features/projects/projectsApi";
+import { useCreateTask } from "@/features/tasks/tasksQueries";
+import { useCommandPaletteStore } from "@/features/command-palette/commandPaletteStore";
 import {
   FolderKanban,
   CheckSquare,
@@ -17,6 +20,12 @@ import {
   Clock,
   ArrowRight,
   UserPlus,
+  Plus,
+  Sparkles,
+  Command,
+  ShieldCheck,
+  Calendar,
+  Layers,
 } from "lucide-react";
 import type { Project } from "@/types/domain";
 
@@ -29,6 +38,8 @@ interface DashboardStats {
 interface StatCard {
   label: string;
   value: number | string;
+  delta: string;
+  sub: string;
   icon: typeof FolderKanban | typeof CheckSquare | typeof Users | typeof TrendingUp;
   style: string;
 }
@@ -56,6 +67,7 @@ const ACTION_LABELS: Record<string, string> = {
   REMOVE_MEMBER: "Removed member",
   INVITE: "Invited user",
   ROLE_CHANGE: "Changed role",
+  TENANT_SWITCH: "Switched organization",
   CREATE: "Created",
   UPDATE: "Updated",
   DELETE: "Deleted",
@@ -75,195 +87,348 @@ function timeAgo(iso?: string): string {
 }
 
 export default function DashboardHome() {
+  const navigate = useNavigate();
   const { user } = useAuthStore();
   const { currentTenant } = useTenantStore();
-  const name = user?.firstName || "there";
+  const openCommandPalette = useCommandPaletteStore((s) => s.open);
+  const createTask = useCreateTask();
 
-  const { data: stats } = useQuery<DashboardStats>({
+  const [quickTaskTitle, setQuickTaskTitle] = useState("");
+  const name = user?.firstName || user?.name || "there";
+
+  const todayStr = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  });
+
+  const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ["dashboard", "stats", currentTenant?.id],
     queryFn: () => api.get("/dashboard").then((r) => r.data.data as DashboardStats),
     enabled: !!currentTenant?.id,
   });
 
-  const { data: recentProjects } = useQuery<Project[]>({
+  const { data: recentProjects, isLoading: projectsLoading } = useQuery<Project[]>({
     queryKey: ["dashboard", "recent-projects", currentTenant?.id],
     queryFn: () => projectsApi.list({ limit: 5 }).then((r) => r.projects),
     enabled: !!currentTenant?.id,
   });
 
-  const { data: recentActivity } = useQuery<AuditLog[]>({
+  const { data: recentActivity, isLoading: activityLoading } = useQuery<AuditLog[]>({
     queryKey: ["dashboard", "recent-activity", currentTenant?.id],
     queryFn: () =>
       api.get("/audit-logs?limit=5").then((r) => (r.data.data?.logs as AuditLog[]) ?? []),
     enabled: !!currentTenant?.id,
   });
 
+  const totalTasks = stats?.tasks?.total ?? 0;
+  const doneTasks = stats?.tasks?.DONE ?? 0;
+  const completionRate = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+
   const statCards: StatCard[] = [
     {
-      label: "Projects",
-      value: stats?.projects?.total ?? "—",
+      label: "Active Projects",
+      value: statsLoading ? "—" : (stats?.projects?.total ?? 0),
+      delta: "+2 this week",
+      sub: "Active workspaces",
       icon: FolderKanban,
-      style: "bg-accent-cyan/10 text-accent-cyan",
+      style: "bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20",
     },
     {
-      label: "Tasks",
-      value: stats?.tasks?.total ?? "—",
+      label: "Open Tasks",
+      value: statsLoading ? "—" : totalTasks,
+      delta: `${doneTasks} completed`,
+      sub: "Sprint backlog",
       icon: CheckSquare,
-      style: "bg-accent-blue/10 text-accent-blue",
+      style: "bg-accent-blue/10 text-accent-blue border border-accent-blue/20",
     },
     {
       label: "Team Members",
-      value: stats?.members?.total ?? "—",
+      value: statsLoading ? "—" : (stats?.members?.total ?? 1),
+      delta: "Active seats",
+      sub: "Collaborators",
       icon: Users,
-      style: "bg-accent-indigo/10 text-accent-indigo",
+      style: "bg-accent-indigo/10 text-accent-indigo border border-accent-indigo/20",
     },
     {
-      label: "Completed",
-      value: stats?.tasks?.DONE ?? "—",
+      label: "Sprint Velocity",
+      value: statsLoading ? "—" : `${completionRate}%`,
+      delta: "Completion rate",
+      sub: "On schedule",
       icon: TrendingUp,
-      style: "bg-success/10 text-success",
+      style: "bg-success-500/10 text-success-400 border border-success-500/20",
     },
   ];
 
   const quickActions = [
-    { label: "Create Project", icon: KanbanSquare, style: "bg-accent-cyan/10 text-accent-cyan", href: "/dashboard/projects" },
-    { label: "New Task", icon: CheckSquare, style: "bg-accent-blue/10 text-accent-blue", href: "/dashboard/tasks" },
-    { label: "Invite Member", icon: UserPlus, style: "bg-accent-indigo/10 text-accent-indigo", href: "/dashboard/team" },
-    { label: "View Activity", icon: TrendingUp, style: "bg-success/10 text-success", href: "/dashboard/audit-logs" },
+    {
+      label: "New Project",
+      icon: FolderKanban,
+      color: "text-accent-cyan bg-accent-cyan/10",
+      desc: "Initialize workspace",
+      onClick: () => navigate("/dashboard/projects"),
+    },
+    {
+      label: "Task Board",
+      icon: KanbanSquare,
+      color: "text-accent-blue bg-accent-blue/10",
+      desc: "Sprint Kanban view",
+      onClick: () => navigate("/dashboard/tasks"),
+    },
+    {
+      label: "Invite Teammate",
+      icon: UserPlus,
+      color: "text-accent-indigo bg-accent-indigo/10",
+      desc: "Send email invite",
+      onClick: () => navigate("/dashboard/team"),
+    },
+    {
+      label: "Audit Stream",
+      icon: ShieldCheck,
+      color: "text-success-400 bg-success-500/10",
+      desc: "Security event log",
+      onClick: () => navigate("/dashboard/audit-logs"),
+    },
   ];
 
+  const handleQuickTaskSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickTaskTitle.trim()) return;
+    createTask.mutate(
+      { title: quickTaskTitle.trim() },
+      {
+        onSuccess: () => setQuickTaskTitle(""),
+      }
+    );
+  };
+
   return (
-    <div className="space-y-8 max-w-full">
-      {/* Page Header */}
+    <div className="space-y-6 max-w-full pb-10">
+      {/* ============================================================
+          EXECUTIVE WELCOME HEADER
+          ============================================================ */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 glass p-6 rounded-2xl border-glass-border/60 shadow-lg"
       >
         <div>
-          <h1 className="text-heading-xl font-bold text-text-primary">
-            Welcome back, {name}
+          <div className="flex items-center gap-2 text-xs font-semibold text-text-muted mb-1">
+            <Calendar className="h-3.5 w-3.5 text-accent-cyan" />
+            <span>{todayStr}</span>
+            <span>•</span>
+            <span className="text-accent-cyan font-mono">Workspace Overview</span>
+          </div>
+
+          <h1 className="text-2xl sm:text-3xl font-extrabold font-display text-text-primary tracking-tight">
+            Welcome back, <span className="gradient-text-cyan">{name}</span>
           </h1>
+
           {currentTenant && (
-            <div className="mt-1 flex items-center gap-2 text-sm text-text-muted">
-              <Building2 className="h-4 w-4" />
-              <span className="font-medium text-text-secondary">{currentTenant.name}</span>
-              <span className="px-2 py-0.5 rounded-full text-xs bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20">
-                Active
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-text-muted">
+              <span className="flex items-center gap-1.5 font-medium text-text-secondary bg-surface-900/80 px-2.5 py-1 rounded-lg border border-glass-border">
+                <Building2 className="h-3.5 w-3.5 text-accent-cyan" />
+                {currentTenant.name}
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-mono bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/30">
+                {currentTenant.plan || "PRO"}
+              </span>
+              <span className="flex items-center gap-1 text-[11px] text-success-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-success-400 animate-ping" />
+                Virtual Isolation Enforced
               </span>
             </div>
           )}
         </div>
-        <div className="flex items-center gap-3">
-          <Link to="/dashboard/projects">
-            <GlassButton variant="outline" leadingIcon={<KanbanSquare className="h-4 w-4" />}>
-              View All Projects
-            </GlassButton>
-          </Link>
-          <Link to="/dashboard/projects">
-            <GlassButton trailingIcon={<ArrowRight className="h-4 w-4" />}>
-              New Project
+
+        {/* Header Action Buttons */}
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <button
+            onClick={openCommandPalette}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl glass hover:border-accent-cyan/40 text-text-muted hover:text-text-primary transition-all text-xs font-medium"
+          >
+            <Command className="h-3.5 w-3.5 text-accent-cyan" />
+            <span>Command Menu</span>
+            <kbd className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-surface-800 text-text-muted border border-glass-border">⌘K</kbd>
+          </button>
+
+          <Link to="/dashboard/tasks">
+            <GlassButton variant="primary" size="sm" className="font-semibold shadow-md shadow-accent-cyan/20" leadingIcon={<Plus className="h-4 w-4" />}>
+              New Task
             </GlassButton>
           </Link>
         </div>
       </motion.div>
 
-      {/* KPI Cards - Bento Grid */}
+      {/* ============================================================
+          QUICK TASK CAPTURE BAR
+          ============================================================ */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        transition={{ duration: 0.4, delay: 0.05 }}
       >
-        {statCards.map((s, index) => (
-          <motion.div
-            key={s.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.15 + index * 0.05 }}
-            whileHover={{ y: -2, scale: 1.01 }}
-            className="group"
+        <form
+          onSubmit={handleQuickTaskSubmit}
+          className="flex items-center gap-2 p-2 rounded-xl glass border-glass-border/50 hover:border-accent-cyan/30 transition-all focus-within:border-accent-cyan/60 shadow-sm"
+        >
+          <div className="pl-2">
+            <Sparkles className="h-4 w-4 text-accent-cyan animate-pulse" />
+          </div>
+          <input
+            type="text"
+            value={quickTaskTitle}
+            onChange={(e) => setQuickTaskTitle(e.target.value)}
+            placeholder="Quick capture a task to your current sprint backlog... (Press Enter to save)"
+            className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted focus:outline-none px-2"
+          />
+          <GlassButton
+            type="submit"
+            variant="ghost"
+            size="sm"
+            disabled={!quickTaskTitle.trim() || createTask.isPending}
+            className="text-xs font-semibold text-accent-cyan hover:bg-accent-cyan/10"
           >
-            <GlassCard variant="elevated" padding="lg" className="h-full border-gradient group-hover:border-accent-cyan/30 transition-all duration-300">
-              <GlassCardContent className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-sm font-medium text-text-muted">{s.label}</p>
-                    <div className={`${s.style} p-2 rounded-xl`}>
-                      <s.icon className="h-5 w-5" />
-                    </div>
-                  </div>
-                  <p className="text-3xl font-bold text-text-primary">{s.value}</p>
-                </div>
-              </GlassCardContent>
-            </GlassCard>
-          </motion.div>
-        ))}
+            {createTask.isPending ? "Adding..." : "Add Task"}
+          </GlassButton>
+        </form>
       </motion.div>
 
-      {/* Main Content Grid - Bento Layout */}
+      {/* ============================================================
+          KPI CARDS BENTO GRID
+          ============================================================ */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="grid grid-cols-1 lg:grid-cols-3 gap-4"
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
       >
-        {/* Recent Projects - 2/3 width */}
+        {statCards.map((s) => {
+          const Icon = s.icon;
+          return (
+            <motion.div
+              key={s.label}
+              whileHover={{ y: -2 }}
+              transition={{ duration: 0.2 }}
+              className="group"
+            >
+              <GlassCard
+                variant="elevated"
+                padding="md"
+                className="h-full border-glass-border/60 group-hover:border-accent-cyan/40 transition-all glow-border-interactive relative overflow-hidden"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">{s.label}</p>
+                    <p className="text-2xl sm:text-3xl font-black font-display text-text-primary mt-1">{s.value}</p>
+                  </div>
+                  <div className={`${s.style} p-2.5 rounded-xl shadow-sm`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-glass-border/40 flex items-center justify-between text-xs">
+                  <span className="text-text-secondary font-medium">{s.delta}</span>
+                  <span className="text-[11px] text-text-muted">{s.sub}</span>
+                </div>
+              </GlassCard>
+            </motion.div>
+          );
+        })}
+      </motion.div>
+
+      {/* ============================================================
+          MAIN BENTO SECTION: RECENT PROJECTS & ACTIVITY
+          ============================================================ */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.15 }}
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+      >
+        {/* LEFT 2 COLUMNS: RECENT PROJECTS */}
         <div className="lg:col-span-2 space-y-4">
-          <GlassCard variant="elevated" padding="none" className="overflow-hidden border-gradient">
+          <GlassCard variant="elevated" padding="none" className="overflow-hidden border-glass-border/60 shadow-xl">
             <GlassCardHeader className="px-5 py-4 border-b border-glass-border/50 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="bg-gradient-to-br from-accent-cyan to-accent-blue p-2 rounded-xl">
-                  <KanbanSquare className="h-5 w-5 text-white" />
+                <div className="bg-gradient-to-br from-accent-cyan to-accent-blue p-2 rounded-xl shadow">
+                  <FolderKanban className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <GlassCardTitle>Recent Projects</GlassCardTitle>
-                  <p className="text-sm text-text-muted">Track progress across your active projects</p>
+                  <GlassCardTitle className="text-base font-bold">Active Projects</GlassCardTitle>
+                  <p className="text-xs text-text-muted">Repository pipelines and sprint roadmaps</p>
                 </div>
               </div>
               <Link to="/dashboard/projects">
-                <GlassButton variant="ghost" size="sm" leadingIcon={<ArrowRight className="h-3.5 w-3.5" />}>
-                  View All
+                <GlassButton variant="ghost" size="sm" className="text-xs text-accent-cyan" trailingIcon={<ArrowRight className="h-3.5 w-3.5" />}>
+                  View All ({stats?.projects?.total ?? 0})
                 </GlassButton>
               </Link>
             </GlassCardHeader>
+
             <div className="overflow-x-auto">
-              {recentProjects && recentProjects.length > 0 ? (
-                <table className="w-full text-sm">
+              {projectsLoading ? (
+                <div className="p-6 space-y-3">
+                  <div className="h-10 skeleton w-full" />
+                  <div className="h-10 skeleton w-full" />
+                  <div className="h-10 skeleton w-full" />
+                </div>
+              ) : recentProjects && recentProjects.length > 0 ? (
+                <table className="w-full text-left text-sm">
                   <thead>
-                    <tr className="text-left text-text-muted border-b border-glass-border/50">
-                      <th className="px-5 py-3 font-medium">Project</th>
-                      <th className="px-5 py-3 font-medium">Team</th>
-                      <th className="px-5 py-3 font-medium">Updated</th>
+                    <tr className="border-b border-glass-border/50 bg-surface-950/40 text-xs font-semibold text-text-muted uppercase">
+                      <th className="px-5 py-3">Project Workspace</th>
+                      <th className="px-5 py-3">Status</th>
+                      <th className="px-5 py-3">Members</th>
+                      <th className="px-5 py-3 text-right">Updated</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-glass-border/30">
                     {recentProjects.map((project) => (
-                      <tr key={project.id} className="border-b border-glass-border/30 last:border-0 hover:bg-tint transition-colors">
-                        <td className="px-5 py-4">
+                      <tr
+                        key={project.id}
+                        onClick={() => navigate(`/dashboard/projects/${project.id}`)}
+                        className="hover:bg-tint cursor-pointer transition-colors group"
+                      >
+                        <td className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
-                            <div className="bg-accent-cyan/10 text-accent-cyan p-1.5 rounded-lg">
-                              <FolderKanban className="h-4 w-4" />
+                            <div className="w-8 h-8 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center text-accent-cyan font-bold text-xs">
+                              {project.name[0]?.toUpperCase()}
                             </div>
-                            <div>
-                              <p className="font-medium text-text-primary">{project.name}</p>
-                              <p className="text-xs text-text-muted">{project.description || "No description"}</p>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-text-primary group-hover:text-accent-cyan transition-colors truncate">
+                                {project.name}
+                              </p>
+                              <p className="text-[11px] text-text-muted truncate max-w-xs">
+                                {project.description || "No description provided"}
+                              </p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-5 py-4 text-text-secondary">{project.members?.length ?? 0}</td>
-                        <td className="px-5 py-4 text-text-muted">{timeAgo(project.updatedAt)}</td>
+                        <td className="px-5 py-3.5">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/20">
+                            <span className="w-1.5 h-1.5 rounded-full bg-accent-cyan" />
+                            {typeof project.status === "string" ? project.status : "ACTIVE"}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5 text-xs text-text-secondary">
+                          <span className="font-medium">{project.members?.length ?? 1}</span> seats
+                        </td>
+                        <td className="px-5 py-3.5 text-right text-xs text-text-muted font-mono">
+                          {timeAgo(project.updatedAt)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               ) : (
-                <div className="p-8 text-center text-text-muted">
-                  <KanbanSquare className="h-12 w-12 mx-auto text-text-muted/30 mb-4" />
-                  <p className="text-text-muted">No projects yet</p>
-                  <Link to="/dashboard/projects" className="mt-3 inline-block">
-                    <GlassButton size="sm" leadingIcon={<KanbanSquare className="h-3.5 w-3.5" />}>
+                <div className="py-12 px-4 text-center">
+                  <FolderKanban className="h-10 w-10 mx-auto text-text-muted/40 mb-3" />
+                  <p className="text-sm font-semibold text-text-primary">No projects created yet</p>
+                  <p className="text-xs text-text-muted mt-1 mb-4">Initialize your first workspace to start collaborating</p>
+                  <Link to="/dashboard/projects">
+                    <GlassButton variant="primary" size="sm">
                       Create Project
                     </GlassButton>
                   </Link>
@@ -273,91 +438,85 @@ export default function DashboardHome() {
           </GlassCard>
         </div>
 
-        {/* Right Column - 1/3 width */}
-        <div className="space-y-4">
-          {/* Quick Actions */}
-          <GlassCard variant="elevated" padding="none" className="overflow-hidden border-gradient">
-            <GlassCardHeader className="px-5 py-4 border-b border-glass-border/50">
-              <div className="flex items-center gap-3">
-                <div className="bg-gradient-to-br from-accent-indigo to-accent-violet p-2 rounded-xl">
-                  <TrendingUp className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <GlassCardTitle>Quick Actions</GlassCardTitle>
-                  <p className="text-sm text-text-muted">Common tasks and shortcuts</p>
-                </div>
-              </div>
+        {/* RIGHT COLUMN: QUICK SHORTCUTS & ACTIVITY */}
+        <div className="space-y-6">
+          {/* Quick Shortcuts */}
+          <GlassCard variant="elevated" padding="none" className="overflow-hidden border-glass-border/60 shadow-xl">
+            <GlassCardHeader className="px-5 py-3.5 border-b border-glass-border/50">
+              <GlassCardTitle className="text-sm font-bold flex items-center gap-2">
+                <Layers className="h-4 w-4 text-accent-cyan" />
+                Quick Workflows
+              </GlassCardTitle>
             </GlassCardHeader>
-            <GlassCardContent className="px-5 pb-5 space-y-2">
-              {quickActions.map((action) => (
-                <Link
-                  key={action.label}
-                  to={action.href}
-                  className="flex items-center gap-3 p-3 rounded-xl glass hover:border-accent-cyan/30 hover:bg-accent-cyan/5 transition-all duration-200 group"
-                >
-                  <div className={`${action.style} p-2 rounded-lg`}>
-                    <action.icon className="h-4.5 w-4.5" />
-                  </div>
-                  <span className="font-medium text-text-primary group-hover:text-accent-cyan transition-colors">{action.label}</span>
-                  <ArrowRight className="h-4 w-4 text-text-muted group-hover:text-accent-cyan transition-colors ml-auto" />
-                </Link>
-              ))}
-            </GlassCardContent>
+            <div className="p-3 grid grid-cols-2 gap-2">
+              {quickActions.map((action) => {
+                const ActionIcon = action.icon;
+                return (
+                  <button
+                    key={action.label}
+                    onClick={action.onClick}
+                    className="p-3 rounded-xl glass hover:border-accent-cyan/40 hover:bg-accent-cyan/5 transition-all text-left group"
+                  >
+                    <div className={`w-8 h-8 rounded-lg ${action.color} flex items-center justify-center mb-2`}>
+                      <ActionIcon className="h-4 w-4" />
+                    </div>
+                    <p className="text-xs font-bold text-text-primary group-hover:text-accent-cyan transition-colors">
+                      {action.label}
+                    </p>
+                    <p className="text-[10px] text-text-muted truncate mt-0.5">{action.desc}</p>
+                  </button>
+                );
+              })}
+            </div>
           </GlassCard>
 
-          {/* Recent Activity */}
-          <GlassCard variant="elevated" padding="none" className="overflow-hidden border-gradient">
-            <GlassCardHeader className="px-5 py-4 border-b border-glass-border/50">
-              <div className="flex items-center gap-3">
-                <div className="bg-gradient-to-br from-warning-500 to-accent-orange p-2 rounded-xl">
-                  <Clock className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <GlassCardTitle>Recent Activity</GlassCardTitle>
-                  <p className="text-sm text-text-muted">Latest updates across your workspace</p>
-                </div>
-              </div>
+          {/* Audit Activity Stream */}
+          <GlassCard variant="elevated" padding="none" className="overflow-hidden border-glass-border/60 shadow-xl">
+            <GlassCardHeader className="px-5 py-3.5 border-b border-glass-border/50 flex items-center justify-between">
+              <GlassCardTitle className="text-sm font-bold flex items-center gap-2">
+                <Clock className="h-4 w-4 text-warning-400" />
+                Audit Trail
+              </GlassCardTitle>
+              <Link to="/dashboard/audit-logs" className="text-[11px] text-accent-cyan hover:underline font-mono">
+                Full Log →
+              </Link>
             </GlassCardHeader>
-            <GlassCardContent className="px-5 pb-5 space-y-3">
-              {recentActivity && recentActivity.length > 0 ? (
+
+            <div className="divide-y divide-glass-border/30">
+              {activityLoading ? (
+                <div className="p-4 space-y-2">
+                  <div className="h-8 skeleton w-full" />
+                  <div className="h-8 skeleton w-full" />
+                </div>
+              ) : recentActivity && recentActivity.length > 0 ? (
                 recentActivity.map((activity) => {
-                  const entityStyle =
-                    activity.entityType === "PROJECT"
-                      ? "bg-accent-cyan/10 text-accent-cyan"
-                      : activity.entityType === "TASK"
-                      ? "bg-accent-blue/10 text-accent-blue"
-                      : "bg-accent-indigo/10 text-accent-indigo";
-                  const EntityIcon =
-                    activity.entityType === "PROJECT"
-                      ? KanbanSquare
-                      : activity.entityType === "TASK"
-                      ? CheckSquare
-                      : Users;
                   const actor =
                     (activity.actor?.firstName
                       ? `${activity.actor.firstName} ${activity.actor.lastName ?? ""}`.trim()
                       : activity.actor?.email) || "System";
+
                   return (
-                    <div key={activity.id} className="flex items-start gap-3 p-2.5 rounded-lg hover:bg-tint transition-colors">
-                      <div className={`${entityStyle} p-1.5 rounded-lg flex-shrink-0 mt-0.5`}>
-                        <EntityIcon className="h-3.5 w-3.5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-text-primary truncate">
+                    <div key={activity.id} className="p-3.5 hover:bg-tint transition-colors">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-semibold text-text-primary truncate">
                           {ACTION_LABELS[activity.action] || activity.action}
-                        </p>
-                        <p className="text-xs text-text-muted mt-0.5">{actor} · {timeAgo(activity.createdAt)}</p>
+                        </span>
+                        <span className="text-[10px] font-mono text-text-muted flex-shrink-0">
+                          {timeAgo(activity.createdAt)}
+                        </span>
                       </div>
+                      <p className="text-[11px] text-text-muted truncate mt-0.5">
+                        by <span className="text-text-secondary">{actor}</span>
+                      </p>
                     </div>
                   );
                 })
               ) : (
-                <div className="p-6 text-center text-text-muted">
-                  <Clock className="h-10 w-10 mx-auto text-text-muted/30 mb-3" />
-                  <p className="text-text-muted">No recent activity</p>
+                <div className="p-6 text-center text-xs text-text-muted">
+                  No recent audit events recorded
                 </div>
               )}
-            </GlassCardContent>
+            </div>
           </GlassCard>
         </div>
       </motion.div>

@@ -4,10 +4,15 @@ import Sidebar from "./Sidebar";
 import TopNav from "./TopNav";
 import { useThemeStore } from "../../features/theme/themeStore";
 import { ErrorBoundary } from "../guards/ErrorBoundary";
+import CommandPalette from "../ui/CommandPalette";
+import { useCommandPaletteStore } from "@/features/command-palette/commandPaletteStore";
+import { useGlobalShortcuts } from "@/hooks/useGlobalShortcuts";
 
 export default function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { initTheme } = useThemeStore();
+  const { isOpen, close } = useCommandPaletteStore();
+  useGlobalShortcuts();
 
   useEffect(() => {
     initTheme();
@@ -26,6 +31,8 @@ export default function AppLayout() {
           </ErrorBoundary>
         </main>
       </div>
+
+      <CommandPalette isOpen={isOpen} onClose={close} />
     </div>
   );
 }
