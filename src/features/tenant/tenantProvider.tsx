@@ -19,7 +19,8 @@ export function useTenant() {
 export function TenantProvider({ children }: { children: ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const checkAuth = useAuthStore((s) => s.checkAuth);
-  const { currentTenant, fetchTenants } = useTenantStore();
+  const currentTenant = useTenantStore((s) => s.currentTenant);
+  const fetchTenants = useTenantStore((s) => s.fetchTenants);
   const fetchPermissions = usePermissionStore((s) => s.fetchPermissions);
   const clearPermissions = usePermissionStore((s) => s.clearPermissions);
   const clearTenants = useTenantStore((s) => s.clearTenants);

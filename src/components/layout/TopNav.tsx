@@ -142,10 +142,12 @@ function ProfileDropdown() {
   );
 }
 
+const NOTIFICATIONS_PARAMS = { limit: 10 };
+
 function NotificationsPanel() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const { data: notificationsData } = useNotifications({ limit: 10 });
+  const { data: notificationsData } = useNotifications(NOTIFICATIONS_PARAMS);
   const { data: unreadCount = 0 } = useUnreadCount();
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();

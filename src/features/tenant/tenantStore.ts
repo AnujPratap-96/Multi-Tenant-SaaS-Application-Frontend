@@ -26,7 +26,14 @@ export const useTenantStore = create<TenantState>()(
       fetchTenants: async () => {
         try {
           const list = await tenantApi.list();
-          set({ tenants: list });
+          const current = get().currentTenant;
+          const updatedCurrent =
+            current && list.some((t) => t.id === current.id)
+              ? current
+              : list.length > 0
+              ? list[0]
+              : null;
+          set({ tenants: list, currentTenant: updatedCurrent });
         } catch {
           set({ tenants: [] });
         }

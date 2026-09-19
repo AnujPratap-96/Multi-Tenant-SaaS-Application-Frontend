@@ -12,18 +12,24 @@ const handleError = (err: unknown) => {
   toast.error(message);
 };
 
-export const useNotifications = (params: NotificationListParams = {}) =>
-  useQuery({
-    queryKey: ["notifications", tenantId(), params],
+export const useNotifications = (params: NotificationListParams = {}) => {
+  const currentTenantId = useTenantStore((s) => s.currentTenant?.id);
+  return useQuery({
+    queryKey: ["notifications", currentTenantId ?? "none", params],
     queryFn: () => notificationsApi.list(params),
+    enabled: !!currentTenantId,
   });
+};
 
-export const useUnreadCount = () =>
-  useQuery({
-    queryKey: ["notifications", tenantId(), "unread-count"],
+export const useUnreadCount = () => {
+  const currentTenantId = useTenantStore((s) => s.currentTenant?.id);
+  return useQuery({
+    queryKey: ["notifications", currentTenantId ?? "none", "unread-count"],
     queryFn: () => notificationsApi.unreadCount(),
     refetchInterval: 30_000,
+    enabled: !!currentTenantId,
   });
+};
 
 export const useMarkNotificationRead = () => {
   const qc = useQueryClient();
