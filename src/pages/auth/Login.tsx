@@ -13,7 +13,7 @@ import api, { API_BASE_URL } from "@/lib/axios";
 import { useAuthStore } from "@/features/auth/authStore";
 import { errorMessage } from "@/lib/errors";
 import type { User } from "@/types/domain";
-import { useToast } from "@/context/ToastProvider";
+import { useToast } from "@/context/useToast";
 
 const loginPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),

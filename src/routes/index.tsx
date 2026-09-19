@@ -28,10 +28,13 @@ const TenantsPage = lazy(() => import("@/pages/dashboard/TenantsPage"));
 const ProjectsPage = lazy(() => import("@/pages/dashboard/ProjectsPage"));
 const ProjectDetailPage = lazy(() => import("@/pages/dashboard/ProjectDetailPage"));
 const TasksPage = lazy(() => import("@/pages/dashboard/TasksPage"));
+const MyTasksPage = lazy(() => import("@/pages/dashboard/MyTasksPage"));
+const DepartmentsPage = lazy(() => import("@/pages/dashboard/DepartmentsPage"));
 const TeamPage = lazy(() => import("@/pages/dashboard/TeamPage"));
 const UsersPage = lazy(() => import("@/pages/dashboard/UsersPage"));
 const UserDetailPage = lazy(() => import("@/pages/dashboard/UserDetailPage"));
 const ProfilePage = lazy(() => import("@/pages/dashboard/ProfilePage"));
+const NotificationPage = lazy(() => import("@/pages/dashboard/NotificationPage"));
 const RolesPage = lazy(() => import("@/pages/dashboard/RolesPage"));
 const AuditLogsPage = lazy(() => import("@/pages/dashboard/AuditLogsPage"));
 const SettingsPage = lazy(() => import("@/pages/dashboard/SettingsPage"));
@@ -72,10 +75,13 @@ export const routes = [
       { path: "projects", element: withLoader(<ProjectsPage />) },
       { path: "projects/:id", element: withLoader(<ProjectDetailPage />) },
       { path: "tasks", element: withLoader(<TasksPage />) },
+      { path: "my-tasks", element: withLoader(<MyTasksPage />) },
+      { path: "departments", element: withLoader(<DepartmentsPage />) },
       { path: "team", element: withLoader(<TeamPage />) },
       { path: "users", element: withLoader(<UsersPage />) },
       { path: "users/:id", element: withLoader(<UserDetailPage />) },
       { path: "profile", element: withLoader(<ProfilePage />) },
+      { path: "notifications", element: withLoader(<NotificationPage />) },
       { path: "roles", element: withLoader(<RolesPage />) },
       { path: "audit-logs", element: withLoader(<AuditLogsPage />) },
       { path: "settings", element: withLoader(<SettingsPage />) },

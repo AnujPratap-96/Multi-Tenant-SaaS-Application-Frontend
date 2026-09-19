@@ -10,6 +10,7 @@ import {
   ClipboardList,
   Building2,
   UserCircle,
+  Bell,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,9 @@ const NAV: NavItem[] = [
   { name: "Users", href: "/dashboard/users", icon: UserCircle, requiresTenant: true },
   { name: "Projects", href: "/dashboard/projects", icon: FolderKanban, requiresTenant: true },
   { name: "Tasks", href: "/dashboard/tasks", icon: CheckSquare, requiresTenant: true },
+  { name: "My Tasks", href: "/dashboard/my-tasks", icon: CheckSquare, requiresTenant: true },
+  { name: "Departments", href: "/dashboard/departments", icon: Building2, requiresTenant: true },
+  { name: "Notifications", href: "/dashboard/notifications", icon: Bell, requiresTenant: true },
   { name: "Team", href: "/dashboard/team", icon: Users, permission: "view:users", requiresTenant: true },
   { name: "Roles", href: "/dashboard/roles", icon: Shield, permission: "view:roles", requiresTenant: true },
   { name: "Audit Logs", href: "/dashboard/audit-logs", icon: ClipboardList, permission: "view:audit-logs", requiresTenant: true },

@@ -3,11 +3,53 @@ import axios, {
   type AxiosInstance,
   type InternalAxiosRequestConfig,
 } from "axios";
+import { useTenantStore } from "@/features/tenant/tenantStore";
 
 declare module "axios" {
   export interface AxiosRequestConfig {
     // Skip the 401-refresh → /login redirect (used by checkAuth on boot).
     skipAuthRedirect?: boolean;
+    _csrfRetry?: boolean;
+  }
+}
+
+/**
+ * C8: central "forbidden" handler. Fired when the server returns 403 for an
+ * authorization reason (not a CSRF mismatch). Default behavior clears the
+ * tenant context and bounces the user to the dashboard; callers may override
+ * via `setForbiddenHandler` (e.g. to use the router).
+ */
+let forbiddenHandler: ((error: AxiosError) => void) | null = null;
+
+export function setForbiddenHandler(handler: ((error: AxiosError) => void) | null) {
+  forbiddenHandler = handler;
+}
+
+export function setTenantHeader(tenantId: string | null): void {
+  const key = "tenant-storage";
+  try {
+    const raw = localStorage.getItem(key);
+    const state = raw ? JSON.parse(raw) : {};
+    state.state = { ...(state.state || {}), currentTenant: tenantId ? { id: tenantId } : null };
+    localStorage.setItem(key, JSON.stringify(state));
+  } catch {
+    /* ignore */
+  }
+}
+
+function handleForbidden(error: AxiosError) {
+  if (forbiddenHandler) {
+    forbiddenHandler(error);
+    return;
+  }
+  // Default: drop tenant context and redirect.
+  try {
+    useTenantStore.getState().clearTenants();
+  } catch {
+    /* ignore */
+  }
+  if (window.location.pathname !== "/dashboard") {
+    window.location.href = "/dashboard";
   }
 }
 
@@ -70,13 +112,19 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as RetryConfig;
 
-    // CSRF token expired/invalid — clear cached token and retry once
-    if (error.response?.status === 403 && !originalRequest._csrfRetry) {
-      originalRequest._csrfRetry = true;
-      csrfToken = null;
-      const token = await getCsrfToken();
-      if (token) originalRequest.headers["x-csrf-token"] = token;
-      return api(originalRequest);
+    // 403: could be a CSRF mismatch (retry once) or an authorization failure.
+    if (error.response?.status === 403) {
+      if (!originalRequest._csrfRetry) {
+        // First 403 — refresh CSRF token and retry once.
+        originalRequest._csrfRetry = true;
+        csrfToken = null;
+        const token = await getCsrfToken();
+        if (token) originalRequest.headers["x-csrf-token"] = token;
+        return api(originalRequest);
+      }
+      // Already retried and still 403 → treat as authorization forbidden (C8).
+      handleForbidden(error);
+      return Promise.reject(error);
     }
 
     // Access token expired — refresh and retry once

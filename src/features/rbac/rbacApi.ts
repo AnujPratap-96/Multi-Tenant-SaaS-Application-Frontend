@@ -36,6 +36,11 @@ export interface CreateRoleInput {
   description?: string;
 }
 
+export interface MyPermissions {
+  permissions: string[];
+  role?: string;
+}
+
 const unwrap = <T>(res: { data?: { data?: T } }): T | undefined => res.data?.data;
 
 export const rbacApi = {
@@ -69,4 +74,6 @@ export const rbacApi = {
     api
       .get("/rbac/permissions")
       .then((res) => (unwrap<RbacPermission[]>(res) ?? []) as RbacPermission[]),
+
+  my: () => api.get<{ data?: { permissions: string[]; role?: string } }>("/rbac/my"),
 };

@@ -17,6 +17,7 @@ import {
   useUpdateProject,
   useDeleteProject,
 } from "@/features/projects/projectsQueries";
+import { useDepartments } from "@/features/departments/departmentsQueries";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Button } from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
@@ -27,7 +28,7 @@ import PageLoader from "@/components/ui/PageLoader";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { Project } from "@/types/domain";
 
-const FORM_DEFAULTS = { name: "", description: "" };
+const FORM_DEFAULTS = { name: "", description: "", departmentIds: [] as string[] };
 
 const FILTER_OPTIONS: { value: boolean; label: string; icon: LucideIcon }[] = [
   { value: false, label: "Active", icon: RotateCcw },
@@ -45,6 +46,8 @@ export default function ProjectsPage() {
   const [form, setForm] = useState(FORM_DEFAULTS);
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const { data: departmentsData } = useDepartments({ limit: 100 });
 
   const handleSearchChange = useCallback((val: string) => {
     setSearch(val);
@@ -71,7 +74,11 @@ export default function ProjectsPage() {
 
   const openEdit = (project: Project) => {
     setEditing(project);
-    setForm({ name: project.name, description: project.description || "" });
+    setForm({
+      name: project.name,
+      description: project.description || "",
+      departmentIds: (project.departments ?? []).map((d) => d.departmentId),
+    });
     setErrors({});
     setModalOpen(true);
   };
@@ -80,6 +87,8 @@ export default function ProjectsPage() {
     const errs: Record<string, string> = {};
     if (!form.name?.trim()) errs.name = "Project name is required";
     else if (form.name.trim().length < 3) errs.name = "Name must be at least 3 characters";
+    if (!editing && (!form.departmentIds || form.departmentIds.length === 0))
+      errs.departments = "Select at least one department";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -87,7 +96,11 @@ export default function ProjectsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    const payload = { name: form.name.trim(), description: form.description.trim() || undefined };
+    const payload = {
+      name: form.name.trim(),
+      description: form.description.trim() || undefined,
+      ...(editing ? {} : { departmentIds: form.departmentIds }),
+    };
     if (editing) {
       updateProject.mutate(payload, {
         onSuccess: () => {
@@ -271,6 +284,45 @@ export default function ProjectsPage() {
               className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none transition-colors"
             />
           </div>
+          {!editing && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Departments <span className="text-red-500">*</span>
+              </label>
+              <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+                {(departmentsData?.departments ?? []).length === 0 && (
+                  <p className="text-xs text-gray-400">Create a department first</p>
+                )}
+                {(departmentsData?.departments ?? []).map((d) => {
+                  const active = form.departmentIds.includes(d.id);
+                  return (
+                    <button
+                      type="button"
+                      key={d.id}
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          departmentIds: active
+                            ? f.departmentIds.filter((x) => x !== d.id)
+                            : [...f.departmentIds, d.id],
+                        }))
+                      }
+                      className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                        active
+                          ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-primary-300 dark:border-primary-700"
+                          : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      }`}
+                    >
+                      {d.name}
+                    </button>
+                  );
+                })}
+              </div>
+              {errors.departments && (
+                <p className="text-xs text-red-500 mt-1">{errors.departments}</p>
+              )}
+            </div>
+          )}
           <div className="flex justify-end gap-3 pt-2">
             <Button
               type="button"

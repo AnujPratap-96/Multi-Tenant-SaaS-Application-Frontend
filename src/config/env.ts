@@ -10,7 +10,6 @@ const envSchema = z.object({
 const parsed = envSchema.safeParse(import.meta.env);
 
 if (!parsed.success) {
-  // eslint-disable-next-line no-console
   console.error("Invalid frontend env config:", parsed.error.flatten());
   throw new Error("Invalid VITE_* environment configuration — check .env");
 }

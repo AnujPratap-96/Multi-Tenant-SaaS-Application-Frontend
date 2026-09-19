@@ -114,10 +114,10 @@ export const tenantApi = {
     api.post(`/tenants/${tenantId}/invites`, data),
 
   cancelInvite: (tenantId?: string, inviteId?: string) =>
-    api.post(`/tenants/${tenantId}/invites/${inviteId}/cancel`),
+    api.delete(`/tenants/${tenantId}/invites/${inviteId}`),
 
   resendInvite: (tenantId?: string, inviteId?: string) =>
     api.post(`/tenants/${tenantId}/invites/${inviteId}/resend`),
 
-  acceptInvite: (token: string) => api.post("/invites/accept", { token }),
+  acceptInvite: (token: string) => api.post("/tenants/invites/accept", { token }),
 };

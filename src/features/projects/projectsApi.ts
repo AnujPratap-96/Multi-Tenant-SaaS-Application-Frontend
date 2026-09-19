@@ -10,6 +10,7 @@ import type {
 export interface CreateProjectInput {
   name: string;
   description?: string;
+  departmentIds?: string[];
 }
 
 export type UpdateProjectInput = CreateProjectInput;

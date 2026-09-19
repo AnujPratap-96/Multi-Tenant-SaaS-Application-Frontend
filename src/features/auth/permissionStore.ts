@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import api from "@/lib/axios";
+import { rbacApi } from "@/features/rbac/rbacApi";
 
 // F-02/F-13: current tenant role + effective permission set.
 // Populated by TenantProvider on boot/tenant switch (GET /rbac/my).
@@ -31,11 +31,11 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
     }
     set({ isLoading: true });
     try {
-      const res = await api.get("/rbac/my");
-      const data = res.data?.data ?? {};
+      const res = await rbacApi.my();
+      const data = res.data?.data;
       set({
-        permissions: Array.isArray(data.permissions) ? data.permissions : [],
-        role: data.role ?? null,
+        permissions: Array.isArray(data?.permissions) ? data.permissions : [],
+        role: data?.role ?? null,
         isLoading: false,
       });
     } catch {

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import api from "@/lib/axios";
+import { tenantApi } from "./tenantApi";
+import { queryClient } from "@/lib/queryClient";
 import type { Tenant } from "@/types/domain";
 
 // F-02: tenant membership store. Persisted under "tenant-storage"
@@ -24,8 +25,7 @@ export const useTenantStore = create<TenantState>()(
 
       fetchTenants: async () => {
         try {
-          const res = await api.get("/tenants/my");
-          const list = res.data?.data ?? [];
+          const list = await tenantApi.list();
           set({ tenants: list });
         } catch {
           set({ tenants: [] });
@@ -35,6 +35,9 @@ export const useTenantStore = create<TenantState>()(
       setCurrentTenant: async (tenantId) => {
         const tenant = get().tenants.find((t) => t.id === tenantId) ?? null;
         set({ currentTenant: tenant });
+        // C7: wipe all cached queries so no previous-tenant data lingers.
+        await queryClient.cancelQueries();
+        queryClient.clear();
       },
 
       clearTenants: () => {

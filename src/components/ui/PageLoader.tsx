@@ -1,7 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function Spinner({ className }: { className?: string }) {
   return <Loader2 className={cn("h-5 w-5 animate-spin text-primary-500", className)} aria-hidden />;
 }

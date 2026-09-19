@@ -3,12 +3,18 @@ import { Menu, ChevronDown, LogOut, User, Settings, Plus, Bell, Hexagon } from "
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../../features/auth/authStore";
 import { useTenantStore } from "../../features/tenant/tenantStore";
+import {
+  useNotifications,
+  useUnreadCount,
+  useMarkNotificationRead,
+  useMarkAllNotificationsRead,
+} from "@/features/notifications/notificationsQueries";
 import { GlassButton } from "@/components/glass/GlassButton";
 import { GlassCard } from "@/components/glass/GlassCard";
 import { GlassDropdown, GlassDropdownItem, GlassDropdownSection, GlassDropdownDivider } from "@/components/glass/GlassDropdown";
 import Breadcrumbs from "./Breadcrumbs";
 import ThemeToggle from "../ui/ThemeToggle";
-import { useToast } from "@/context/ToastProvider";
+import { useToast } from "@/context/useToast";
 
 function TenantSwitcher() {
   const { tenants, currentTenant, setCurrentTenant } = useTenantStore();
@@ -139,6 +145,12 @@ function ProfileDropdown() {
 function NotificationsPanel() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const { data: notificationsData } = useNotifications({ limit: 10 });
+  const { data: unreadCount = 0 } = useUnreadCount();
+  const markRead = useMarkNotificationRead();
+  const markAllRead = useMarkAllNotificationsRead();
+
+  const items = notificationsData?.items ?? [];
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -148,12 +160,17 @@ function NotificationsPanel() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Mock notifications
-  const notifications = [
-    { id: 1, title: "New member joined", description: "Sarah Chen joined Acme Corp", time: "2m ago", read: false },
-    { id: 2, title: "Project updated", description: "Website Redesign progress: 65%", time: "1h ago", read: false },
-    { id: 3, title: "Task assigned", description: "You were assigned to \"API Migration\"", time: "3h ago", read: true },
-  ];
+  const [now] = useState(() => Date.now());
+
+  const formatTime = (iso?: string) => {
+    if (!iso) return "";
+    const diff = now - new Date(iso).getTime();
+    const mins = Math.round(diff / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.round(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.round(hrs / 24)}d ago`;
+  };
 
   return (
     <div className="relative" ref={ref}>
@@ -165,8 +182,10 @@ function NotificationsPanel() {
         aria-label="Notifications"
       >
         <Bell className="h-4.5 w-4.5" />
-        {notifications.some(n => !n.read) && (
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-accent-cyan" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-accent-cyan text-[10px] font-bold text-white flex items-center justify-center">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
         )}
       </GlassButton>
 
@@ -174,29 +193,56 @@ function NotificationsPanel() {
         <GlassCard variant="strong" padding="none" className="absolute top-full right-0 mt-2 w-80 animate-slide-in-up max-h-[400px] flex flex-col">
           <div className="p-4 border-b border-glass-border/50 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-text-primary">Notifications</h3>
-            <button className="text-xs text-accent-cyan hover:text-accent-blue font-medium">Mark all read</button>
+            <button
+              className="text-xs text-accent-cyan hover:text-accent-blue font-medium disabled:opacity-40"
+              onClick={() => markAllRead.mutate()}
+              disabled={markAllRead.isPending || unreadCount === 0}
+            >
+              Mark all read
+            </button>
           </div>
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {notifications.length === 0 ? (
+            {items.length === 0 ? (
               <div className="p-8 text-center text-text-muted text-sm">No notifications</div>
             ) : (
-              notifications.map((n) => (
-                <Link
+              items.map((n) => (
+                <button
                   key={n.id}
-                  to="#"
-                  className={`flex items-start gap-3 p-3 rounded-xl transition-colors ${!n.read ? "bg-accent-cyan/5" : ""
-                    } hover:bg-tint`}
-                  onClick={() => setOpen(false)}
+                  className={`w-full text-left flex items-start gap-3 p-3 rounded-xl transition-colors ${
+                    !n.readAt ? "bg-accent-cyan/5" : ""
+                  } hover:bg-tint`}
+                  onClick={() => {
+                    if (!n.readAt) markRead.mutate(n.id);
+                    setOpen(false);
+                  }}
                 >
-                  <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${!n.read ? "bg-accent-cyan" : "bg-text-muted"}`} />
+                  <div
+                    className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                      !n.readAt ? "bg-accent-cyan" : "bg-text-muted"
+                    }`}
+                  />
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm ${!n.read ? "font-semibold text-text-primary" : "font-medium text-text-secondary"}`}>{n.title}</p>
-                    <p className="text-xs text-text-muted truncate">{n.description}</p>
-                    <p className="text-[10px] text-text-muted mt-1">{n.time}</p>
+                    <p
+                      className={`text-sm ${
+                        !n.readAt ? "font-semibold text-text-primary" : "font-medium text-text-secondary"
+                      }`}
+                    >
+                      {n.message}
+                    </p>
+                    <p className="text-[10px] text-text-muted mt-1">{formatTime(n.createdAt)}</p>
                   </div>
-                </Link>
+                </button>
               ))
             )}
+          </div>
+          <div className="p-2 border-t border-glass-border/50">
+            <Link
+              to="/dashboard/notifications"
+              onClick={() => setOpen(false)}
+              className="block text-center text-xs text-accent-cyan hover:text-accent-blue font-medium py-1.5"
+            >
+              View all
+            </Link>
           </div>
         </GlassCard>
       )}

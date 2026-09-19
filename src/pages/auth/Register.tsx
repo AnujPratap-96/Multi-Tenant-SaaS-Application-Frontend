@@ -11,7 +11,7 @@ import { GlassCard } from "@/components/glass/GlassCard";
 import { GlassCardHeader, GlassCardTitle, GlassCardDescription, GlassCardContent, GlassCardFooter } from "@/components/glass/GlassCard";
 import api, { API_BASE_URL } from "@/lib/axios";
 import { errorMessage } from "@/lib/errors";
-import { useToast } from "@/context/ToastProvider";
+import { useToast } from "@/context/useToast";
 
 const signupSchema = z.object({
   email: z.string().email("Invalid email address"),

@@ -22,6 +22,9 @@ export function Dialog({ open, onClose, title, description, children, size = "md
 
   useEffect(() => {
     onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
     if (!open) return;
 
     previouslyFocused.current = document.activeElement as HTMLElement | null;

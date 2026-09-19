@@ -153,12 +153,25 @@ export default function UserDetailPage() {
     enabled: !!id,
   });
 
+  const { data: sessions = [] } = useQuery<Session[]>({
+    queryKey: ["user-sessions", id],
+    queryFn: async () => {
+      try {
+        const res = await api.get(`/users/${id}/sessions`);
+        return res.data.data ?? [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!id,
+  });
+
   const revokeMutation = useMutation({
     mutationFn: async (sessionId: string) => {
-      await api.delete(`/users/sessions/${sessionId}`);
+      await api.delete(`/users/${id}/sessions/${sessionId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user", id] });
+      queryClient.invalidateQueries({ queryKey: ["user-sessions", id] });
       setRevokeTarget(null);
       toast.success("Session revoked");
     },
@@ -254,10 +267,10 @@ export default function UserDetailPage() {
       </div>
 
       {/* Sessions */}
-      {user.sessions && user.sessions.length > 0 && (
+      {sessions && sessions.length > 0 && (
         <div className="bg-surface-50 dark:bg-neutral-950 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6">
           <UserSessions
-            sessions={user.sessions}
+            sessions={sessions}
             onRevoke={(sessionId) => setRevokeTarget(sessionId)}
           />
         </div>

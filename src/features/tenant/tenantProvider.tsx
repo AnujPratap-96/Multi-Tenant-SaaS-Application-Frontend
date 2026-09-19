@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from "react";
-import { setOnForbidden, setTenantHeader } from "@/lib/api-client";
+import { setForbiddenHandler, setTenantHeader } from "@/lib/axios";
 import { useAuthStore } from "../auth/authStore";
 import { usePermissionStore } from "../auth/permissionStore";
 import { useTenantStore } from "./tenantStore";
@@ -50,14 +50,14 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
   // Real 403 (e.g. removed from tenant) -> clear membership + return to /tenants
   useEffect(() => {
-    setOnForbidden(() => {
+    setForbiddenHandler(() => {
       clearPermissions();
       clearTenants();
       if (window.location.pathname !== "/dashboard/tenants") {
         window.location.href = "/dashboard/tenants";
       }
     });
-    return () => setOnForbidden(null);
+    return () => setForbiddenHandler(null);
   }, [clearPermissions, clearTenants]);
 
   return <>{children}</>;

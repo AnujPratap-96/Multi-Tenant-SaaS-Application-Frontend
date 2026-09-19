@@ -11,7 +11,7 @@ import { GlassCard } from "@/components/glass/GlassCard";
 import { GlassCardHeader, GlassCardTitle, GlassCardDescription, GlassCardContent, GlassCardFooter } from "@/components/glass/GlassCard";
 import api from "@/lib/axios";
 import { errorMessage } from "@/lib/errors";
-import { useToast } from "@/context/ToastProvider";
+import { useToast } from "@/context/useToast";
 
 const resetPasswordSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),

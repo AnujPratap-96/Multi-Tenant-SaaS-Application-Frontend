@@ -17,15 +17,15 @@ import type { ApiError } from "@/types/domain";
 
 const ROLE_OPTIONS = [
   { value: "ALL", label: "All Roles" },
-  { value: "admin", label: "Admin" },
-  { value: "manager", label: "Manager" },
-  { value: "user", label: "User" },
+  { value: "ADMIN", label: "Admin" },
+  { value: "MANAGER", label: "Manager" },
+  { value: "USER", label: "User" },
 ];
 
 const STATUS_OPTIONS = [
   { value: "ALL", label: "All Status" },
-  { value: "active", label: "Active" },
-  { value: "suspended", label: "Suspended" },
+  { value: "ACTIVE", label: "Active" },
+  { value: "SUSPENDED", label: "Suspended" },
 ];
 
 interface AdminUser {
@@ -57,14 +57,16 @@ interface EditUserForm {
 }
 
 function StatusBadge({ status, isActive }: { status?: string; isActive?: boolean }) {
-  if (status === "suspended") return <Badge label="Suspended" variant="suspended" />;
+  const s = status?.toUpperCase();
+  if (s === "SUSPENDED") return <Badge label="Suspended" variant="suspended" />;
   if (!isActive) return <Badge label="Inactive" variant="removed" />;
   return <Badge label="Active" variant="active" />;
 }
 
 function RoleBadge({ role }: { role?: string }) {
+  const r = role?.toLowerCase() || "user";
   const map: Record<string, BadgeVariant> = { admin: "admin", manager: "manager", user: "user" };
-  const variant: BadgeVariant = role ? (map[role] || "user") : "user";
+  const variant: BadgeVariant = map[r] || "user";
   return <Badge label={role} variant={variant} />;
 }
 
@@ -82,8 +84,8 @@ function EditUserModal({ open, onClose, user, onSave }: EditUserModalProps) {
     avatarUrl: "",
     emailVerified: false,
     isActive: true,
-    role: "user",
-    status: "active",
+    role: "USER",
+    status: "ACTIVE",
   });
 
   const [prevUserId, setPrevUserId] = useState<string | null>(null);
@@ -96,8 +98,8 @@ function EditUserModal({ open, onClose, user, onSave }: EditUserModalProps) {
         avatarUrl: user.avatarUrl ?? "",
         emailVerified: user.emailVerified ?? false,
         isActive: user.isActive ?? true,
-        role: user.membershipRole ?? "user",
-        status: user.membershipStatus === "suspended" ? "suspended" : "active",
+        role: user.membershipRole?.toUpperCase() ?? "USER",
+        status: user.membershipStatus?.toUpperCase() === "SUSPENDED" ? "SUSPENDED" : "ACTIVE",
       });
     }
   }
@@ -153,9 +155,9 @@ function EditUserModal({ open, onClose, user, onSave }: EditUserModalProps) {
                 onChange={set("role")}
                 className="w-full h-9 px-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-surface-50 dark:bg-neutral-900 text-sm text-gray-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
               >
-                <option value="admin">Admin</option>
-                <option value="manager">Manager</option>
-                <option value="user">User</option>
+                <option value="ADMIN">Admin</option>
+                <option value="MANAGER">Manager</option>
+                <option value="USER">User</option>
               </Select>
             </div>
             <div>
@@ -167,8 +169,8 @@ function EditUserModal({ open, onClose, user, onSave }: EditUserModalProps) {
                 onChange={set("status")}
                 className="w-full h-9 px-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-surface-50 dark:bg-neutral-900 text-sm text-gray-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
               >
-                <option value="active">Active</option>
-                <option value="suspended">Suspended</option>
+                <option value="ACTIVE">Active</option>
+                <option value="SUSPENDED">Suspended</option>
               </Select>
             </div>
           </div>

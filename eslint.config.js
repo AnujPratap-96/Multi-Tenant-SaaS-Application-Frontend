@@ -52,8 +52,8 @@ export default defineConfig([
         {
           patterns: [
             {
-              group: ['@/lib/api-client', '**/lib/api-client'],
-              message: 'Import the feature api module instead of the client directly (features/*/api.ts).',
+              group: ['@/lib/axios', '**/lib/axios'],
+              message: 'Import the feature api module instead of the axios client directly (features/*/api.ts).',
             },
           ],
         },

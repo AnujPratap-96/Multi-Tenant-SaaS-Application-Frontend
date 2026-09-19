@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import api from "@/lib/axios";
+import { rbacApi } from "./rbacApi";
 
 // F-13: current-user permission set (effective = role + overrides).
 // Used by PermissionRoute to gate routes.
@@ -13,7 +13,7 @@ export function usePermissions(tenantId?: string) {
   return useQuery<MyPermissions>({
     queryKey: ["rbac", tenantId, "my"],
     queryFn: async () => {
-      const res = await api.get("/rbac/my");
+      const res = await rbacApi.my();
       return (res.data?.data ?? { permissions: [] }) as MyPermissions;
     },
     enabled: !!tenantId,

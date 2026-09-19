@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import api from "@/lib/axios";
 import { useAuthStore } from "@/features/auth/authStore";
+import { useTenantStore } from "@/features/tenant/tenantStore";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Button } from "@/components/ui/Button";
@@ -24,6 +25,12 @@ import type { ApiError } from "@/types/domain";
 interface ProfileForm {
   firstName: string;
   lastName: string;
+  displayName: string;
+  jobTitle: string;
+  bio: string;
+  timezone: string;
+  locale: string;
+  avatarUrl: string;
 }
 
 interface PasswordForm {
@@ -47,23 +54,43 @@ const errorMessage = (err: unknown, fallback: string) =>
 function ProfileSection() {
   const queryClient = useQueryClient();
   const { user: authUser } = useAuthStore();
-  const [form, setForm] = useState<ProfileForm>({ firstName: "", lastName: "" });
+  const currentTenant = useTenantStore((s) => s.currentTenant);
+  const [form, setForm] = useState<ProfileForm>({
+    firstName: "",
+    lastName: "",
+    displayName: "",
+    jobTitle: "",
+    bio: "",
+    timezone: "",
+    locale: "",
+    avatarUrl: "",
+  });
 
   const [prevUserId, setPrevUserId] = useState<string | null>(null);
   if (authUser?.id !== prevUserId) {
     setPrevUserId(authUser?.id ?? null);
     if (authUser) {
-      setForm({ firstName: authUser.firstName || "", lastName: authUser.lastName || "" });
+      setForm({
+        firstName: authUser.firstName || "",
+        lastName: authUser.lastName || "",
+        displayName: authUser.displayName || "",
+        jobTitle: authUser.jobTitle || "",
+        bio: authUser.bio || "",
+        timezone: authUser.timezone || "",
+        locale: authUser.locale || "",
+        avatarUrl: authUser.avatarUrl || "",
+      });
     }
   }
 
   const mutation = useMutation({
     mutationFn: async (data: ProfileForm) => {
-      const res = await api.patch("/users/me", data);
+      const res = await api.patch("/users/me", { ...data, tenantId: currentTenant?.id });
       return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       toast.success("Profile updated");
     },
     onError: (err: unknown) => {
@@ -76,6 +103,12 @@ function ProfileSection() {
     mutation.mutate({
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
+      displayName: form.displayName.trim(),
+      jobTitle: form.jobTitle.trim(),
+      bio: form.bio.trim(),
+      timezone: form.timezone.trim(),
+      locale: form.locale.trim(),
+      avatarUrl: form.avatarUrl.trim(),
     });
   };
 
@@ -102,6 +135,75 @@ function ProfileSection() {
             placeholder="Last name"
           />
         </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Display Name
+        </label>
+        <Input
+          value={form.displayName}
+          onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
+          placeholder="How your name appears to others"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Job Title {currentTenant ? <span className="text-gray-400">(in this workspace)</span> : null}
+        </label>
+        <Input
+          value={form.jobTitle}
+          onChange={(e) => setForm((f) => ({ ...f, jobTitle: e.target.value }))}
+          placeholder="e.g. Frontend Engineer"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Bio
+        </label>
+        <textarea
+          value={form.bio}
+          onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
+          placeholder="A short bio…"
+          rows={3}
+          className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition resize-none"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Timezone
+          </label>
+          <Input
+            value={form.timezone}
+            onChange={(e) => setForm((f) => ({ ...f, timezone: e.target.value }))}
+            placeholder="e.g. America/New_York"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Locale
+          </label>
+          <Input
+            value={form.locale}
+            onChange={(e) => setForm((f) => ({ ...f, locale: e.target.value }))}
+            placeholder="e.g. en-US"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Avatar URL
+        </label>
+        <Input
+          value={form.avatarUrl}
+          onChange={(e) => setForm((f) => ({ ...f, avatarUrl: e.target.value }))}
+          placeholder="https://…"
+        />
       </div>
 
       <div>

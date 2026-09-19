@@ -24,9 +24,15 @@ export interface User {
   name?: string;
   firstName?: string;
   lastName?: string;
+  displayName?: string | null;
   email: string;
   avatarUrl?: string | null;
+  jobTitle?: string | null;
+  bio?: string | null;
+  timezone?: string | null;
+  locale?: string | null;
   role?: string | null;
+  tenantJobTitle?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -53,6 +59,7 @@ export interface Project {
   createdAt?: string;
   updatedAt?: string;
   members?: ProjectMember[];
+  departments?: { departmentId: string; department?: { id: string; name: string } }[];
   [key: string]: unknown;
 }
 
@@ -63,6 +70,26 @@ export interface ProjectMember {
   removedAt?: string | null;
 }
 
+export interface Department {
+  id: string;
+  name: string;
+  description?: string | null;
+  managerId?: string | null;
+  manager?: User | null;
+  memberCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  [key: string]: unknown;
+}
+
+export interface DepartmentMember {
+  userId: string;
+  role: string;
+  user?: User;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
 export interface Task {
   id: string;
   projectId: string;
@@ -71,9 +98,17 @@ export interface Task {
   status?: string;
   priority?: string;
   dueDate?: string | null;
+  initialDueDate?: string | null;
+  startedAt?: string | null;
   completedAt?: string | null;
+  reopenedAt?: string | null;
+  blockedReason?: string | null;
+  cancelledReason?: string | null;
+  estimatedMinutes?: number | null;
+  taskTypeId?: string | null;
   assigneeId?: string | null;
-  assignees?: { userId: string; user?: User }[];
+  assignees?: { userId: string; user?: User; assignedById?: string | null; assignedAt?: string; removedAt?: string | null }[];
+  departments?: { departmentId: string; department?: { id: string; name: string } }[];
   createdBy?: User | null;
   createdAt?: string;
   updatedAt?: string;
@@ -84,7 +119,54 @@ export interface TaskComment {
   id: string;
   taskId: string;
   comment: string;
+  parentId?: string | null;
   user?: User;
+  editedAt?: string | null;
+  mentions?: { userId: string; user?: User }[];
+  replies?: TaskComment[];
+  createdAt?: string;
+}
+
+export interface TaskActivity {
+  id: string;
+  taskId?: string;
+  userId?: string;
+  action: string;
+  field?: string | null;
+  type?: string;
+  fromValue?: string | null;
+  toValue?: string | null;
+  reason?: string | null;
+  createdAt?: string;
+  actor?: User | null;
+  user?: {
+    id: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    email: string;
+    avatarUrl?: string | null;
+  } | null;
+}
+
+export interface TimeEntry {
+  id: string;
+  taskId: string;
+  userId: string;
+  startedAt: string;
+  endedAt?: string | null;
+  durationMinutes?: number | null;
+  description?: string | null;
+  createdAt?: string;
+}
+
+export interface Notification {
+  id: string;
+  type: string;
+  entityType?: string | null;
+  entityId?: string | null;
+  message: string;
+  data?: Record<string, unknown> | null;
+  readAt?: string | null;
   createdAt?: string;
 }
 

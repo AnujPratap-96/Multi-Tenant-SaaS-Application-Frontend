@@ -7,17 +7,27 @@ import {
   Circle,
   CheckCircle2,
   Clock,
+  AlertCircle,
+  Ban,
   ArrowUp,
   ArrowDown,
   CalendarDays,
   UserPlus,
   MessageSquare,
   Trash2,
+  X,
+  Pencil,
+  History,
+  Timer,
+  Play,
+  Square,
   type LucideIcon,
 } from "lucide-react";
 import { useProjects } from "@/features/projects/projectsQueries";
 import { useMembers } from "@/features/tenant/tenantQueries";
+import { useDepartments } from "@/features/departments/departmentsQueries";
 import { useTenantStore } from "@/features/tenant/tenantStore";
+import { useAuthStore } from "@/features/auth/authStore";
 import {
   useTasks,
   useTask,
@@ -27,6 +37,14 @@ import {
   useDeleteTask,
   useAddAssignee,
   useAddComment,
+  useAddAssigneeToTask,
+  useRemoveAssignee,
+  useUpdateComment,
+  useTaskActivity,
+  useTimeEntries,
+  useStartTimer,
+  useStopTimer,
+  useDeleteTimeEntry,
 } from "@/features/tasks/tasksQueries";
 import type { CreateTaskInput } from "@/features/tasks/tasksApi";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -64,10 +82,13 @@ interface StatusConfig {
 const STATUS_CONFIG: Record<string, StatusConfig> = {
   TODO: { label: "To Do", icon: Circle, color: "text-gray-400", bg: "bg-gray-50 dark:bg-gray-800/50", border: "border-gray-100 dark:border-gray-800", iconBg: "text-gray-400" },
   IN_PROGRESS: { label: "In Progress", icon: Clock, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-900/10", border: "border-blue-100 dark:border-blue-900/20", iconBg: "text-blue-500" },
+  IN_REVIEW: { label: "In Review", icon: AlertCircle, color: "text-purple-500", bg: "bg-purple-50 dark:bg-purple-900/10", border: "border-purple-100 dark:border-purple-900/20", iconBg: "text-purple-500" },
+  BLOCKED: { label: "Blocked", icon: AlertCircle, color: "text-red-500", bg: "bg-red-50 dark:bg-red-900/10", border: "border-red-100 dark:border-red-900/20", iconBg: "text-red-500" },
   DONE: { label: "Done", icon: CheckCircle2, color: "text-green-500", bg: "bg-green-50 dark:bg-green-900/10", border: "border-green-100 dark:border-green-900/20", iconBg: "text-green-500" },
+  CANCELLED: { label: "Cancelled", icon: Ban, color: "text-gray-400", bg: "bg-gray-50 dark:bg-gray-800/50", border: "border-gray-100 dark:border-gray-800", iconBg: "text-gray-400" },
 };
 
-const STATUSES = ["TODO", "IN_PROGRESS", "DONE"];
+const STATUSES = ["TODO", "IN_PROGRESS", "IN_REVIEW", "BLOCKED", "DONE", "CANCELLED"];
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH"];
 
 type ViewMode = "table" | "kanban" | "list";
@@ -132,12 +153,22 @@ interface CreateForm {
   description: string;
   priority: string;
   dueDate: string;
+  departmentIds: string[];
+  assigneeIds: string[];
 }
 
-const CREATE_FORM_DEFAULTS: CreateForm = { title: "", description: "", priority: "MEDIUM", dueDate: "" };
+const CREATE_FORM_DEFAULTS: CreateForm = {
+  title: "",
+  description: "",
+  priority: "MEDIUM",
+  dueDate: "",
+  departmentIds: [],
+  assigneeIds: [],
+};
 
 export default function TasksPage() {
   const currentTenant = useTenantStore((s) => s.currentTenant);
+  const { user: currentUser } = useAuthStore();
   const { data: projectsData } = useProjects({ limit: 100 });
 
   const projects = projectsData?.projects ?? [];
@@ -163,6 +194,8 @@ export default function TasksPage() {
 
   const { data: tasksData, isLoading: tasksLoading } = useTasks(selectedProjectId, queryParams);
   const createTask = useCreateTask();
+  const addAssigneeToTask = useAddAssigneeToTask();
+  const { data: departmentsData } = useDepartments({ limit: 100 });
   const deleteTask = useDeleteTask(selectedProjectId);
 
   const { data: membersData } = useMembers(currentTenant?.id, { limit: 100 });
@@ -180,9 +213,19 @@ export default function TasksPage() {
   const updateTask = useUpdateTask(detailTaskId ?? undefined);
   const addAssignee = useAddAssignee(detailTaskId ?? undefined);
   const addComment = useAddComment(detailTaskId ?? undefined);
+  const removeAssignee = useRemoveAssignee(detailTaskId ?? undefined);
+  const updateComment = useUpdateComment(detailTaskId ?? undefined);
+  const { data: activityData } = useTaskActivity(detailTaskId ?? undefined);
+  const { data: timeData } = useTimeEntries(detailTaskId ?? undefined);
+  const startTimer = useStartTimer(detailTaskId ?? undefined);
+  const stopTimer = useStopTimer();
+  const deleteTimeEntry = useDeleteTimeEntry(detailTaskId ?? undefined);
 
   const [detailAssignModal, setDetailAssignModal] = useState(false);
   const [commentText, setCommentText] = useState("");
+  const [editingComment, setEditingComment] = useState<{ id: string; text: string } | null>(null);
+  const [commentMentions, setCommentMentions] = useState<string[]>([]);
+  const [showMentionList, setShowMentionList] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<Task | null>(null);
   const dragTaskRef = useRef<{ taskId: string; status: string } | null>(null);
 
@@ -196,6 +239,7 @@ export default function TasksPage() {
     (e: React.FormEvent) => {
       e.preventDefault();
       if (!createForm.title.trim() || !selectedProjectId) return;
+      const assigneeIds = createForm.assigneeIds;
       createTask.mutate(
         {
           projectId: selectedProjectId,
@@ -203,16 +247,21 @@ export default function TasksPage() {
           description: createForm.description.trim() || undefined,
           priority: createForm.priority,
           dueDate: createForm.dueDate ? new Date(createForm.dueDate).toISOString() : undefined,
+          departmentIds: createForm.departmentIds.length ? createForm.departmentIds : undefined,
         },
         {
-          onSuccess: () => {
+          onSuccess: (created) => {
+            const newId = created?.id;
+            if (newId && assigneeIds.length) {
+              assigneeIds.forEach((uid) => addAssigneeToTask.mutate({ taskId: newId, userId: uid }));
+            }
             setCreateModalOpen(false);
             setCreateForm(CREATE_FORM_DEFAULTS);
           },
         }
       );
     },
-    [createForm, selectedProjectId, createTask]
+    [createForm, selectedProjectId, createTask, addAssigneeToTask]
   );
 
   const handleStatusChange = useCallback(
@@ -244,11 +293,28 @@ export default function TasksPage() {
     (e: React.FormEvent) => {
       e.preventDefault();
       if (!commentText.trim()) return;
-      addComment.mutate(commentText.trim(), {
-        onSuccess: () => setCommentText(""),
-      });
+      addComment.mutate(
+        { comment: commentText.trim(), mentionIds: commentMentions },
+        {
+          onSuccess: () => {
+            setCommentText("");
+            setCommentMentions([]);
+          },
+        }
+      );
     },
-    [commentText, addComment]
+    [commentText, commentMentions, addComment]
+  );
+
+  const handleUpdateComment = useCallback(
+    (commentId: string) => {
+      if (!editingComment || !editingComment.text.trim()) return;
+      updateComment.mutate(
+        { commentId, comment: editingComment.text.trim() },
+        { onSuccess: () => setEditingComment(null) }
+      );
+    },
+    [editingComment, updateComment]
   );
 
   // ── Drag & Drop ──────────────────────────────────────────────────────────────
@@ -275,9 +341,11 @@ export default function TasksPage() {
 
   // ── Kanban grouping ──────────────────────────────────────────────────────────
   const kanbanTasks = useMemo(() => {
-    const grouped: Record<string, Task[]> = { TODO: [], IN_PROGRESS: [], DONE: [] };
+    const grouped: Record<string, Task[]> = {
+      TODO: [], IN_PROGRESS: [], IN_REVIEW: [], BLOCKED: [], DONE: [], CANCELLED: [],
+    };
     tasks.forEach((t) => {
-      if (t.status) grouped[t.status]?.push(t);
+      if (t.status) (grouped[t.status] ??= []).push(t);
     });
     return grouped;
   }, [tasks]);
@@ -655,6 +723,83 @@ export default function TasksPage() {
               />
             </div>
           </div>
+
+          {/* Departments */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Departments
+            </label>
+            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+              {(departmentsData?.departments ?? []).length === 0 && (
+                <p className="text-xs text-gray-400">No departments yet</p>
+              )}
+              {(departmentsData?.departments ?? []).map((d) => {
+                const active = createForm.departmentIds.includes(d.id);
+                return (
+                  <button
+                    type="button"
+                    key={d.id}
+                    onClick={() =>
+                      setCreateForm((f) => ({
+                        ...f,
+                        departmentIds: active
+                          ? f.departmentIds.filter((x) => x !== d.id)
+                          : [...f.departmentIds, d.id],
+                      }))
+                    }
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                      active
+                        ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-primary-300 dark:border-primary-700"
+                        : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    {d.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Assignees */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Assignees
+            </label>
+            <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+              {projectMembers.length === 0 && (
+                <p className="text-xs text-gray-400">No members available</p>
+              )}
+              {projectMembers.map((m) => {
+                const u = m.user;
+                const name = u?.firstName
+                  ? `${u.firstName} ${u.lastName || ""}`.trim()
+                  : u?.email || "Unknown";
+                const active = createForm.assigneeIds.includes(m.userId);
+                return (
+                  <button
+                    type="button"
+                    key={m.userId}
+                    onClick={() =>
+                      setCreateForm((f) => ({
+                        ...f,
+                        assigneeIds: active
+                          ? f.assigneeIds.filter((x) => x !== m.userId)
+                          : [...f.assigneeIds, m.userId],
+                      }))
+                    }
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                      active
+                        ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-primary-300 dark:border-primary-700"
+                        : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    {name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="outline" onClick={() => setCreateModalOpen(false)}>
               Cancel
@@ -762,12 +907,19 @@ export default function TasksPage() {
                 {detailTask.assignees?.map((a) => (
                   <div
                     key={a.userId}
-                    className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 rounded-full px-2.5 py-1 text-xs"
+                    className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 rounded-full pl-1 pr-1.5 py-1 text-xs"
                   >
                     <UserAvatar user={a.user} />
                     <span className="text-gray-700 dark:text-gray-300">
                       {a.user?.firstName ? `${a.user.firstName} ${a.user.lastName || ""}` : a.user?.email || "Unknown"}
                     </span>
+                    <button
+                      onClick={() => removeAssignee.mutate({ userId: a.userId })}
+                      className="ml-0.5 p-0.5 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-500 transition-colors"
+                      aria-label="Remove assignee"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -792,7 +944,7 @@ export default function TasksPage() {
                 <MessageSquare className="h-4 w-4 text-gray-400" />
                 Comments ({comments?.length || 0})
               </h4>
-              <form onSubmit={handleAddComment} className="flex gap-2 mb-4">
+              <form onSubmit={handleAddComment} className="flex gap-2 mb-2">
                 <input
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
@@ -808,25 +960,183 @@ export default function TasksPage() {
                   Send
                 </Button>
               </form>
+              <div className="flex items-center gap-2 mb-3">
+                <button
+                  type="button"
+                  onClick={() => setShowMentionList((v) => !v)}
+                  className="text-xs text-primary-500 hover:underline"
+                >
+                  Mention a member
+                </button>
+                {commentMentions.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {commentMentions.map((id) => {
+                      const m = projectMembers.find((p) => p.user?.id === id);
+                      return (
+                        <span
+                          key={id}
+                          className="text-[10px] bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded px-1.5 py-0.5 flex items-center gap-1"
+                        >
+                          @{m?.user?.firstName || m?.user?.email || "user"}
+                          <button type="button" onClick={() => setCommentMentions((p) => p.filter((x) => x !== id))}>
+                            <X className="h-2.5 w-2.5" />
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              {showMentionList && (
+                <div className="mb-3 max-h-32 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-2 space-y-1">
+                  {projectMembers.map((m) => (
+                    <label key={m.user?.id} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={commentMentions.includes(m.user?.id ?? "")}
+                        onChange={(e) =>
+                          setCommentMentions((prev) =>
+                            e.target.checked
+                              ? [...prev, m.user?.id ?? ""]
+                              : prev.filter((x) => x !== m.user?.id)
+                          )
+                        }
+                      />
+                      <span>{m.user?.firstName ? `${m.user.firstName} ${m.user.lastName || ""}` : m.user?.email || "Unknown"}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
               <div className="space-y-3 max-h-60 overflow-y-auto">
                 {comments?.length === 0 && (
                   <p className="text-xs text-gray-400 text-center py-4">No comments yet</p>
                 )}
-                {comments?.map((c) => (
-                  <div key={c.id} className="flex gap-2.5">
-                    <UserAvatar user={c.user} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-gray-900 dark:text-white">
-                          {c.user?.firstName ? `${c.user.firstName} ${c.user.lastName || ""}` : c.user?.email || "Unknown"}
-                        </span>
-                        <span className="text-[10px] text-gray-400">{formatDateTime(c.createdAt)}</span>
+                {comments?.map((c) => {
+                  const isAuthor = c.user?.id === currentUser?.id;
+                  const isEditing = editingComment?.id === c.id;
+                  return (
+                    <div key={c.id} className="flex gap-2.5">
+                      <UserAvatar user={c.user} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-gray-900 dark:text-white">
+                            {c.user?.firstName ? `${c.user.firstName} ${c.user.lastName || ""}` : c.user?.email || "Unknown"}
+                          </span>
+                          <span className="text-[10px] text-gray-400">{formatDateTime(c.createdAt)}</span>
+                          {c.editedAt && <span className="text-[10px] text-gray-400">(edited)</span>}
+                          {isAuthor && !isEditing && (
+                            <button
+                              onClick={() => setEditingComment({ id: c.id, text: c.comment })}
+                              className="ml-auto p-0.5 rounded text-gray-400 hover:text-primary-500 transition-colors"
+                              aria-label="Edit comment"
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                        {isEditing ? (
+                          <div className="mt-1 flex gap-2">
+                            <input
+                              autoFocus
+                              value={editingComment?.text ?? ""}
+                              onChange={(e) => setEditingComment({ id: c.id, text: e.target.value })}
+                              className="flex-1 h-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-2 text-sm"
+                            />
+                            <Button size="sm" onClick={() => handleUpdateComment(c.id)}>Save</Button>
+                            <Button size="sm" variant="ghost" onClick={() => setEditingComment(null)}>Cancel</Button>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-0.5 whitespace-pre-wrap">{c.comment}</p>
+                        )}
+                        {c.mentions && c.mentions.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {c.mentions.map((m) => (
+                              <span
+                                key={m.userId}
+                                className="text-[10px] bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded px-1.5 py-0.5"
+                              >
+                                @{m.user?.firstName || m.user?.email || "user"}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-0.5">{c.comment}</p>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
+            </div>
+
+            {/* Time Tracking */}
+            <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <Timer className="h-4 w-4 text-gray-400" /> Time Tracking
+              </h4>
+              {(() => {
+                const running = timeData?.items?.find((e) => !e.endedAt);
+                return (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      {running ? (
+                        <Button size="sm" variant="ghost" onClick={() => stopTimer.mutate(running.id)}>
+                          <Square className="h-3.5 w-3.5 mr-1" /> Stop
+                        </Button>
+                      ) : (
+                        <Button size="sm" onClick={() => startTimer.mutate({})} disabled={startTimer.isPending}>
+                          <Play className="h-3.5 w-3.5 mr-1" /> Start
+                        </Button>
+                      )}
+                      <span className="text-xs text-gray-400">{running ? "Timer running" : "No active timer"}</span>
+                    </div>
+                    {timeData?.items?.length ? (
+                      <ul className="space-y-1 max-h-28 overflow-y-auto">
+                        {timeData.items.map((e) => (
+                          <li key={e.id} className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-300">
+                            <span>
+                              {formatDateTime(e.startedAt)} → {e.endedAt ? formatDateTime(e.endedAt) : "running"}
+                            </span>
+                            <span className="flex items-center gap-2">
+                              <span className="text-gray-400">{e.durationMinutes ? `${e.durationMinutes}m` : ""}</span>
+                              {e.endedAt && (
+                                <button
+                                  onClick={() => deleteTimeEntry.mutate(e.id)}
+                                  className="text-gray-400 hover:text-red-500"
+                                  aria-label="Delete time entry"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              )}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-gray-400">No time logged</p>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Activity */}
+            <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <History className="h-4 w-4 text-gray-400" /> Activity
+              </h4>
+              {activityData?.items?.length ? (
+                <ul className="space-y-1.5 max-h-40 overflow-y-auto">
+                  {activityData.items.map((a) => (
+                    <li key={a.id} className="text-xs text-gray-600 dark:text-gray-300">
+                      <span className="text-gray-400">{formatDateTime(a.createdAt)}</span>{" "}
+                      <span className="font-medium">{a.user?.firstName || a.user?.email || "System"}</span>{" "}
+                      {a.action}
+                      {a.field && <span className="text-gray-400"> ({a.field})</span>}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-gray-400">No activity recorded</p>
+              )}
             </div>
           </div>
         ) : (
