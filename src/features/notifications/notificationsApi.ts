@@ -3,7 +3,7 @@ import type { Notification } from "@/types/domain";
 
 // Notifications API surface (Notification table + BullMQ emitter).
 
-const unwrap = <T>(res: { data?: { data?: T } }): T | undefined => res.data?.data;
+const unwrap = <T>(res: { data?: { data?: T } }): T | undefined => res.data?.data ?? (res.data as unknown as T);
 
 export interface NotificationListParams {
   page?: number;
