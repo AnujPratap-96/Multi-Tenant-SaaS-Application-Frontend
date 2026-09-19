@@ -172,7 +172,6 @@ select option {
 
   html {
     @apply antialiased;
-    scroll-behavior: smooth;
     background-color: rgb(var(--c-canvas));
   }
 

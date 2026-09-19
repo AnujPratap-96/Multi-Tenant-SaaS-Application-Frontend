@@ -101,8 +101,9 @@ export const routes = [
   },
 ];
 
+const router = createBrowserRouter(routes);
+
 export function AppRouter() {
-  const router = createBrowserRouter(routes);
   return (
     <ErrorBoundary>
       <RouterProvider router={router} />

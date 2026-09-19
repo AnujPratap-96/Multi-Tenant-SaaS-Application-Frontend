@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -174,6 +174,24 @@ export default function Landing() {
   // Pricing toggle state
   const [annualBilling, setAnnualBilling] = useState(true);
 
+  // Ensure browser doesn't automatically glide or auto-scroll on mount
+  useEffect(() => {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    if (!window.location.hash) {
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
+  const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    const elem = document.getElementById(id);
+    if (elem) {
+      elem.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   // Cycle tasks when clicked in demo
   const handleCycleTaskStatus = (taskId: string) => {
     setDemoTasks((prev) =>
@@ -213,24 +231,28 @@ export default function Landing() {
           <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-text-muted">
             <a
               href="#demo"
+              onClick={(e) => handleScrollTo(e, "demo")}
               className="hover:text-accent-cyan transition-colors relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-accent-cyan after:transition-all hover:after:w-full"
             >
               Live Demo
             </a>
             <a
               href="#features"
+              onClick={(e) => handleScrollTo(e, "features")}
               className="hover:text-accent-cyan transition-colors relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-accent-cyan after:transition-all hover:after:w-full"
             >
               Architecture
             </a>
             <a
               href="#security"
+              onClick={(e) => handleScrollTo(e, "security")}
               className="hover:text-accent-cyan transition-colors relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-accent-cyan after:transition-all hover:after:w-full"
             >
               Security
             </a>
             <a
               href="#pricing"
+              onClick={(e) => handleScrollTo(e, "pricing")}
               className="hover:text-accent-cyan transition-colors relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-accent-cyan after:transition-all hover:after:w-full"
             >
               Pricing
@@ -316,7 +338,7 @@ export default function Landing() {
                 Start Free Trial (14 Days)
               </GlassButton>
             </Link>
-            <a href="#demo" className="w-full sm:w-auto">
+            <a href="#demo" onClick={(e) => handleScrollTo(e, "demo")} className="w-full sm:w-auto">
               <GlassButton
                 variant="outline"
                 size="lg"

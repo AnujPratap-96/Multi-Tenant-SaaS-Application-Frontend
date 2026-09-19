@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Plus,
   Columns3,
@@ -21,6 +22,7 @@ import {
   Timer,
   Play,
   Square,
+  FolderKanban,
   type LucideIcon,
 } from "lucide-react";
 import { useProjects } from "@/features/projects/projectsQueries";
@@ -48,7 +50,6 @@ import {
 } from "@/features/tasks/tasksQueries";
 import type { CreateTaskInput } from "@/features/tasks/tasksApi";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Button } from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import PageLoader from "@/components/ui/PageLoader";
@@ -56,18 +57,20 @@ import SearchInput from "@/components/ui/SearchInput";
 import { Select } from "@/components/ui/Select";
 import Pagination from "@/components/ui/Pagination";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { GlassCard } from "@/components/glass/GlassCard";
+import { GlassButton } from "@/components/glass/GlassButton";
 import type { Task, User } from "@/types/domain";
 
 const PRIORITY_ICONS: Record<string, LucideIcon> = { HIGH: ArrowUp, MEDIUM: ArrowDown, LOW: ArrowDown };
 const PRIORITY_COLORS: Record<string, string> = {
-  HIGH: "text-red-500",
-  MEDIUM: "text-yellow-500",
-  LOW: "text-gray-400",
+  HIGH: "text-rose-500 dark:text-rose-400",
+  MEDIUM: "text-amber-500 dark:text-amber-400",
+  LOW: "text-emerald-500 dark:text-emerald-400",
 };
 const PRIORITY_BG: Record<string, string> = {
-  HIGH: "bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/20",
-  MEDIUM: "bg-yellow-50 dark:bg-yellow-900/10 border-yellow-100 dark:border-yellow-900/20",
-  LOW: "bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800",
+  HIGH: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
+  MEDIUM: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+  LOW: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
 };
 
 interface StatusConfig {
@@ -77,21 +80,70 @@ interface StatusConfig {
   bg: string;
   border: string;
   iconBg: string;
+  dotBg: string;
 }
 
 const STATUS_CONFIG: Record<string, StatusConfig> = {
-  TODO: { label: "To Do", icon: Circle, color: "text-gray-400", bg: "bg-gray-50 dark:bg-gray-800/50", border: "border-gray-100 dark:border-gray-800", iconBg: "text-gray-400" },
-  IN_PROGRESS: { label: "In Progress", icon: Clock, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-900/10", border: "border-blue-100 dark:border-blue-900/20", iconBg: "text-blue-500" },
-  IN_REVIEW: { label: "In Review", icon: AlertCircle, color: "text-purple-500", bg: "bg-purple-50 dark:bg-purple-900/10", border: "border-purple-100 dark:border-purple-900/20", iconBg: "text-purple-500" },
-  BLOCKED: { label: "Blocked", icon: AlertCircle, color: "text-red-500", bg: "bg-red-50 dark:bg-red-900/10", border: "border-red-100 dark:border-red-900/20", iconBg: "text-red-500" },
-  DONE: { label: "Done", icon: CheckCircle2, color: "text-green-500", bg: "bg-green-50 dark:bg-green-900/10", border: "border-green-100 dark:border-green-900/20", iconBg: "text-green-500" },
-  CANCELLED: { label: "Cancelled", icon: Ban, color: "text-gray-400", bg: "bg-gray-50 dark:bg-gray-800/50", border: "border-gray-100 dark:border-gray-800", iconBg: "text-gray-400" },
+  TODO: {
+    label: "To Do",
+    icon: Circle,
+    color: "text-neutral-500 dark:text-neutral-400",
+    bg: "bg-neutral-50/50 dark:bg-neutral-900/30",
+    border: "border-neutral-200/60 dark:border-white/10",
+    iconBg: "text-neutral-400",
+    dotBg: "bg-neutral-400",
+  },
+  IN_PROGRESS: {
+    label: "In Progress",
+    icon: Clock,
+    color: "text-brand-600 dark:text-brand-400",
+    bg: "bg-brand-50/20 dark:bg-brand-950/20",
+    border: "border-brand-500/20",
+    iconBg: "text-brand-500",
+    dotBg: "bg-brand-500",
+  },
+  IN_REVIEW: {
+    label: "In Review",
+    icon: AlertCircle,
+    color: "text-indigo-600 dark:text-indigo-400",
+    bg: "bg-indigo-50/20 dark:bg-indigo-950/20",
+    border: "border-indigo-500/20",
+    iconBg: "text-indigo-500",
+    dotBg: "bg-indigo-500",
+  },
+  BLOCKED: {
+    label: "Blocked",
+    icon: AlertCircle,
+    color: "text-rose-600 dark:text-rose-400",
+    bg: "bg-rose-50/20 dark:bg-rose-950/20",
+    border: "border-rose-500/20",
+    iconBg: "text-rose-500",
+    dotBg: "bg-rose-500",
+  },
+  DONE: {
+    label: "Done",
+    icon: CheckCircle2,
+    color: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-50/20 dark:bg-emerald-950/20",
+    border: "border-emerald-500/20",
+    iconBg: "text-emerald-500",
+    dotBg: "bg-emerald-500",
+  },
+  CANCELLED: {
+    label: "Cancelled",
+    icon: Ban,
+    color: "text-neutral-400 dark:text-neutral-500",
+    bg: "bg-neutral-100/30 dark:bg-neutral-900/20",
+    border: "border-neutral-200/40 dark:border-white/5",
+    iconBg: "text-neutral-400",
+    dotBg: "bg-neutral-400",
+  },
 };
 
 const STATUSES = ["TODO", "IN_PROGRESS", "IN_REVIEW", "BLOCKED", "DONE", "CANCELLED"];
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH"];
 
-type ViewMode = "table" | "kanban" | "list";
+type ViewMode = "kanban" | "table" | "list";
 
 function formatDate(d?: string | null) {
   if (!d) return "";
@@ -107,7 +159,7 @@ function UserAvatar({ user, size = "sm" }: { user?: User; size?: "sm" | "lg" }) 
   const s = size === "sm" ? "h-6 w-6 text-[10px]" : "h-8 w-8 text-xs";
   return (
     <div
-      className={`${s} rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center font-medium text-primary-700 dark:text-primary-400 shrink-0`}
+      className={`${s} rounded-full bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center font-bold text-white shrink-0 ring-1 ring-white dark:ring-neutral-900 shadow-xs`}
       title={user?.firstName ? `${user.firstName} ${user.lastName || ""}` : user?.email}
     >
       {user?.firstName?.[0] || user?.email?.[0]?.toUpperCase() || "?"}
@@ -118,14 +170,14 @@ function UserAvatar({ user, size = "sm" }: { user?: User; size?: "sm" | "lg" }) 
 function AssigneeAvatars({ assignees, max = 3 }: { assignees?: { userId: string; user?: User }[]; max?: number }) {
   const visible = assignees?.slice(0, max) || [];
   const remaining = (assignees?.length || 0) - max;
-  if (!visible.length) return <span className="text-xs text-gray-400">—</span>;
+  if (!visible.length) return <span className="text-xs text-neutral-400">—</span>;
   return (
     <div className="flex items-center -space-x-1.5">
       {visible.map((a) => (
         <UserAvatar key={a.userId} user={a.user} />
       ))}
       {remaining > 0 && (
-        <div className="h-6 w-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-[10px] font-medium text-gray-500 -ml-1.5">
+        <div className="h-6 w-6 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-[10px] font-bold text-neutral-500 -ml-1.5 ring-1 ring-white dark:ring-neutral-900">
           +{remaining}
         </div>
       )}
@@ -136,14 +188,15 @@ function AssigneeAvatars({ assignees, max = 3 }: { assignees?: { userId: string;
 function PriorityBadge({ priority }: { priority?: string }) {
   const Icon = priority ? PRIORITY_ICONS[priority] : undefined;
   const label: Record<string, string> = { HIGH: "High", MEDIUM: "Medium", LOW: "Low" };
+  if (!priority) return null;
   return (
     <span
-      className={`inline-flex items-center gap-1 text-xs font-medium ${
-        priority ? PRIORITY_COLORS[priority] : ""
+      className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+        PRIORITY_BG[priority] ?? "bg-neutral-100 text-neutral-600"
       }`}
     >
-      {Icon && <Icon className="h-3 w-3" />}
-      {priority ? label[priority] : ""}
+      {Icon && <Icon className={`h-3 w-3 ${PRIORITY_COLORS[priority]}`} />}
+      {label[priority] || priority}
     </span>
   );
 }
@@ -167,12 +220,15 @@ const CREATE_FORM_DEFAULTS: CreateForm = {
 };
 
 export default function TasksPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const currentTenant = useTenantStore((s) => s.currentTenant);
   const { user: currentUser } = useAuthStore();
   const { data: projectsData } = useProjects({ limit: 100 });
 
-  const projects = projectsData?.projects ?? [];
-  const [selectedProjectId, setSelectedProjectId] = useState("");
+  const projects = useMemo(() => projectsData?.projects ?? [], [projectsData]);
+  const initialTaskId = searchParams.get("taskId") || null;
+  const [selectedProjectId, setSelectedProjectId] = useState(() => searchParams.get("projectId") || "");
+
   const [viewMode, setViewMode] = useState<ViewMode>("kanban");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -207,7 +263,7 @@ export default function TasksPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [createForm, setCreateForm] = useState<CreateForm>(CREATE_FORM_DEFAULTS);
 
-  const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
+  const [detailTaskId, setDetailTaskId] = useState<string | null>(initialTaskId);
   const { data: detailTask } = useTask(detailTaskId ?? undefined);
   const { data: comments } = useTaskComments(detailTaskId ?? undefined);
   const updateTask = useUpdateTask(detailTaskId ?? undefined);
@@ -229,11 +285,19 @@ export default function TasksPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<Task | null>(null);
   const dragTaskRef = useRef<{ taskId: string; status: string } | null>(null);
 
-  const handleProjectChange = useCallback((val: string) => {
-    setSelectedProjectId(val);
-    setPage(1);
-    setDetailTaskId(null);
-  }, []);
+  const handleProjectChange = useCallback(
+    (val: string) => {
+      setSelectedProjectId(val);
+      setPage(1);
+      setDetailTaskId(null);
+      if (val) {
+        setSearchParams({ projectId: val });
+      } else {
+        setSearchParams({});
+      }
+    },
+    [setSearchParams]
+  );
 
   const handleCreateSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -342,7 +406,12 @@ export default function TasksPage() {
   // ── Kanban grouping ──────────────────────────────────────────────────────────
   const kanbanTasks = useMemo(() => {
     const grouped: Record<string, Task[]> = {
-      TODO: [], IN_PROGRESS: [], IN_REVIEW: [], BLOCKED: [], DONE: [], CANCELLED: [],
+      TODO: [],
+      IN_PROGRESS: [],
+      IN_REVIEW: [],
+      BLOCKED: [],
+      DONE: [],
+      CANCELLED: [],
     };
     tasks.forEach((t) => {
       if (t.status) (grouped[t.status] ??= []).push(t);
@@ -356,46 +425,112 @@ export default function TasksPage() {
     return projectMembers.filter((m) => !assignedIds.has(m.userId));
   }, [detailTask, projectMembers]);
 
-  // ── Render ───────────────────────────────────────────────────────────────────
+  const selectedProject = useMemo(() => {
+    return projects.find((p) => p.id === selectedProjectId);
+  }, [projects, selectedProjectId]);
+
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Tasks</h1>
-        <div className="flex items-center gap-3">
-          <Select value={selectedProjectId} onChange={(e) => handleProjectChange(e.target.value)}>
-            <option value="">Select project…</option>
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      {/* Header & Controls */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight flex items-center gap-3">
+            <span>Sprint Tasks</span>
+            {selectedProject && (
+              <span className="text-sm font-semibold px-3 py-1 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+                {selectedProject.name}
+              </span>
+            )}
+          </h1>
+          <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+            Track sprints, assign contributors, and monitor cycle velocity in real-time.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 flex-wrap">
+          <Select
+            value={selectedProjectId}
+            onChange={(e) => handleProjectChange(e.target.value)}
+            className="w-56 h-10 px-3 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-card-dark text-sm font-medium text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition shadow-sm"
+          >
+            <option value="">Choose Workspace…</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
               </option>
             ))}
           </Select>
-          <Button size="lg" className="flex-shrink-0" onClick={() => setCreateModalOpen(true)} disabled={!selectedProjectId}>
+
+          <GlassButton
+            variant="primary"
+            size="md"
+            className="shadow-sm"
+            onClick={() => setCreateModalOpen(true)}
+            disabled={!selectedProjectId}
+          >
             <Plus className="h-4 w-4 mr-1.5" /> New Task
-          </Button>
+          </GlassButton>
         </div>
       </div>
 
       {!selectedProjectId ? (
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-12 text-center">
-          <Columns3 className="h-12 w-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
-            Select a project to view and manage tasks
-          </p>
+        <div className="space-y-6">
+          <GlassCard className="p-8 sm:p-12 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center">
+              <FolderKanban className="h-8 w-8" />
+            </div>
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">Select a Project Workspace</h2>
+            <p className="text-neutral-500 dark:text-neutral-400 text-sm max-w-md mx-auto mb-8">
+              Select an active workspace from below to view its Kanban board, track task assignments, and log sprint hours.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto text-left">
+              {projects.map((p) => (
+                <div
+                  key={p.id}
+                  onClick={() => handleProjectChange(p.id)}
+                  className="p-5 rounded-xl border border-neutral-200/70 dark:border-white/10 bg-white/70 dark:bg-card-dark/70 hover:border-brand-500/50 hover:shadow-md transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-brand-500" />
+                    <h3 className="font-bold text-neutral-900 dark:text-white group-hover:text-brand-500 transition-colors truncate">
+                      {p.name}
+                    </h3>
+                  </div>
+                  {p.description && (
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-2 mb-3">
+                      {p.description}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between text-xs text-neutral-400 pt-2 border-t border-neutral-100 dark:border-white/5">
+                    <span>Active Workspace</span>
+                    <span className="text-brand-500 font-semibold group-hover:translate-x-0.5 transition-transform">
+                      Open Board →
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
         </div>
       ) : (
         <>
-          {/* Toolbar */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2 flex-wrap">
-              <SearchInput value={search} onChange={setSearch} placeholder="Search tasks…" className="w-56" />
+          {/* Toolbar & Filter Bar */}
+          <GlassCard className="p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 flex-wrap w-full sm:w-auto">
+              <SearchInput
+                value={search}
+                onChange={setSearch}
+                placeholder="Search tasks…"
+                className="w-full sm:w-56"
+              />
               <Select
                 value={statusFilter}
                 onChange={(e) => {
                   setStatusFilter(e.target.value);
                   setPage(1);
                 }}
+                className="h-10 text-xs font-semibold px-3 rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-card-dark text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 <option value="">All statuses</option>
                 {STATUSES.map((s) => (
@@ -410,6 +545,7 @@ export default function TasksPage() {
                   setPriorityFilter(e.target.value);
                   setPage(1);
                 }}
+                className="h-10 text-xs font-semibold px-3 rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-card-dark text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 <option value="">All priorities</option>
                 {PRIORITIES.map((p) => (
@@ -419,135 +555,162 @@ export default function TasksPage() {
                 ))}
               </Select>
             </div>
-            <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+
+            <div className="flex items-center border border-neutral-200 dark:border-white/10 rounded-xl overflow-hidden bg-neutral-100/50 dark:bg-white/5 p-0.5">
               {(
                 [
-                  { key: "table", icon: Table2 },
-                  { key: "kanban", icon: Columns3 },
-                  { key: "list", icon: List },
-                ] as { key: ViewMode; icon: LucideIcon }[]
+                  { key: "kanban", icon: Columns3, label: "Kanban" },
+                  { key: "table", icon: Table2, label: "Table" },
+                  { key: "list", icon: List, label: "List" },
+                ] as { key: ViewMode; icon: LucideIcon; label: string }[]
               ).map(({ key, icon: Icon }) => (
                 <button
                   key={key}
                   onClick={() => setViewMode(key)}
-                  className={`p-2 transition-colors ${
+                  className={`p-2 rounded-lg transition-all ${
                     viewMode === key
-                      ? "bg-primary-600 text-white"
-                      : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      ? "bg-white dark:bg-card-dark text-brand-600 dark:text-brand-400 shadow-xs"
+                      : "text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
                   }`}
+                  title={key}
                 >
                   <Icon className="h-4 w-4" />
                 </button>
               ))}
             </div>
-          </div>
+          </GlassCard>
 
           {tasksLoading ? (
             <PageLoader />
           ) : tasks.length === 0 ? (
-            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-12 text-center">
-              <div className="h-12 w-12 mx-auto rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
-                <List className="h-6 w-6 text-gray-400" />
+            <GlassCard className="p-12 text-center">
+              <div className="h-12 w-12 mx-auto rounded-2xl bg-neutral-100 dark:bg-white/5 flex items-center justify-center mb-3">
+                <List className="h-6 w-6 text-neutral-400" />
               </div>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">No tasks found</p>
-              <Button size="sm" onClick={() => setCreateModalOpen(true)}>
-                <Plus className="h-4 w-4 mr-1" /> Create first task
-              </Button>
-            </div>
+              <p className="text-neutral-700 dark:text-neutral-300 font-bold mb-1">No tasks in this workspace</p>
+              <p className="text-neutral-500 dark:text-neutral-400 text-xs mb-4">
+                Start tracking sprint progress by adding the first task.
+              </p>
+              <GlassButton size="sm" variant="primary" onClick={() => setCreateModalOpen(true)}>
+                <Plus className="h-4 w-4 mr-1.5" /> Create First Task
+              </GlassButton>
+            </GlassCard>
           ) : (
             <>
+              {/* ── View: Table ───────────────────────────────────────────────── */}
               {viewMode === "table" && (
-                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
-                        <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Task</th>
-                        <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Status</th>
-                        <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Priority</th>
-                        <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Assignees</th>
-                        <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Due Date</th>
-                        <th className="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                      {tasks.map((task) => (
-                        <tr key={task.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
-                          <td className="px-4 py-3">
-                            <button
-                              onClick={() => setDetailTaskId(task.id)}
-                              className="text-sm font-medium text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 text-left"
-                            >
-                              {task.title}
-                            </button>
-                            {task.description && (
-                              <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{task.description}</p>
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            <Select
-                              value={task.status}
-                              onChange={(e) => handleQuickUpdate(task.id, "status", e.target.value)}
-                              className={`text-xs font-medium rounded-lg px-2 py-1 border ${
-                                STATUS_CONFIG[task.status ?? ""]?.bg
-                              } ${STATUS_CONFIG[task.status ?? ""]?.color} ${
-                                STATUS_CONFIG[task.status ?? ""]?.border
-                              } focus:outline-none cursor-pointer`}
-                            >
-                              {STATUSES.map((s) => (
-                                <option key={s} value={s}>
-                                  {STATUS_CONFIG[s].label}
-                                </option>
-                              ))}
-                            </Select>
-                          </td>
-                          <td className="px-4 py-3">
-                            <Select
-                              value={task.priority}
-                              onChange={(e) => handleQuickUpdate(task.id, "priority", e.target.value)}
-                              className={`text-xs font-medium rounded-lg px-2 py-1 border ${
-                                PRIORITY_BG[task.priority ?? ""]
-                              } focus:outline-none cursor-pointer`}
-                            >
-                              {PRIORITIES.map((p) => (
-                                <option key={p} value={p}>
-                                  {p.charAt(0) + p.slice(1).toLowerCase()}
-                                </option>
-                              ))}
-                            </Select>
-                          </td>
-                          <td className="px-4 py-3">
-                            <AssigneeAvatars assignees={task.assignees} />
-                          </td>
-                          <td className="px-4 py-3 text-xs text-gray-500">
-                            {task.dueDate ? (
-                              <span className="flex items-center gap-1">
-                                <CalendarDays className="h-3 w-3" />
-                                {formatDate(task.dueDate)}
-                              </span>
-                            ) : (
-                              "—"
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <button
-                              onClick={() => setDeleteConfirm(task)}
-                              className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </td>
+                <GlassCard className="overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-neutral-200/60 dark:border-white/10 bg-neutral-50/50 dark:bg-white/[0.02]">
+                          <th className="text-left px-5 py-3.5 font-bold text-neutral-500 dark:text-neutral-400 text-xs uppercase tracking-wider">
+                            Task
+                          </th>
+                          <th className="text-left px-5 py-3.5 font-bold text-neutral-500 dark:text-neutral-400 text-xs uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="text-left px-5 py-3.5 font-bold text-neutral-500 dark:text-neutral-400 text-xs uppercase tracking-wider">
+                            Priority
+                          </th>
+                          <th className="text-left px-5 py-3.5 font-bold text-neutral-500 dark:text-neutral-400 text-xs uppercase tracking-wider">
+                            Assignees
+                          </th>
+                          <th className="text-left px-5 py-3.5 font-bold text-neutral-500 dark:text-neutral-400 text-xs uppercase tracking-wider">
+                            Due Date
+                          </th>
+                          <th className="text-right px-5 py-3.5 font-bold text-neutral-500 dark:text-neutral-400 text-xs uppercase tracking-wider">
+                            Actions
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800">
+                      </thead>
+                      <tbody className="divide-y divide-neutral-100 dark:divide-white/5">
+                        {tasks.map((task) => (
+                          <tr
+                            key={task.id}
+                            className="hover:bg-neutral-50/50 dark:hover:bg-white/[0.02] transition-colors"
+                          >
+                            <td className="px-5 py-4">
+                              <button
+                                onClick={() => setDetailTaskId(task.id)}
+                                className="text-sm font-semibold text-neutral-900 dark:text-white hover:text-brand-500 dark:hover:text-brand-400 text-left transition-colors"
+                              >
+                                {task.title}
+                              </button>
+                              {task.description && (
+                                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 line-clamp-1">
+                                  {task.description}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-5 py-4">
+                              <Select
+                                value={task.status}
+                                onChange={(e) => handleQuickUpdate(task.id, "status", e.target.value)}
+                                className={`text-xs font-semibold rounded-lg px-2.5 py-1 border ${
+                                  STATUS_CONFIG[task.status ?? ""]?.bg
+                                } ${STATUS_CONFIG[task.status ?? ""]?.color} ${
+                                  STATUS_CONFIG[task.status ?? ""]?.border
+                                } focus:outline-none cursor-pointer`}
+                              >
+                                {STATUSES.map((s) => (
+                                  <option key={s} value={s}>
+                                    {STATUS_CONFIG[s].label}
+                                  </option>
+                                ))}
+                              </Select>
+                            </td>
+                            <td className="px-5 py-4">
+                              <Select
+                                value={task.priority}
+                                onChange={(e) => handleQuickUpdate(task.id, "priority", e.target.value)}
+                                className={`text-xs font-semibold rounded-lg px-2.5 py-1 border ${
+                                  PRIORITY_BG[task.priority ?? ""]
+                                } focus:outline-none cursor-pointer`}
+                              >
+                                {PRIORITIES.map((p) => (
+                                  <option key={p} value={p}>
+                                    {p.charAt(0) + p.slice(1).toLowerCase()}
+                                  </option>
+                                ))}
+                              </Select>
+                            </td>
+                            <td className="px-5 py-4">
+                              <AssigneeAvatars assignees={task.assignees} />
+                            </td>
+                            <td className="px-5 py-4 text-xs text-neutral-500">
+                              {task.dueDate ? (
+                                <span className="flex items-center gap-1.5 font-medium">
+                                  <CalendarDays className="h-3.5 w-3.5 text-neutral-400" />
+                                  {formatDate(task.dueDate)}
+                                </span>
+                              ) : (
+                                "—"
+                              )}
+                            </td>
+                            <td className="px-5 py-4 text-right">
+                              <button
+                                onClick={() => setDeleteConfirm(task)}
+                                className="p-1.5 rounded-lg hover:bg-rose-500/10 text-neutral-400 hover:text-rose-500 transition-colors"
+                                title="Delete task"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="px-5 py-3.5 border-t border-neutral-200/60 dark:border-white/10">
                     <Pagination page={page} totalPages={pagination?.totalPages || 1} onChange={setPage} />
                   </div>
-                </div>
+                </GlassCard>
               )}
 
+              {/* ── View: Kanban ──────────────────────────────────────────────── */}
               {viewMode === "kanban" && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[500px]">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 min-h-[550px]">
                   {STATUSES.map((status) => {
                     const cfg = STATUS_CONFIG[status];
                     const Icon = cfg.icon;
@@ -557,18 +720,24 @@ export default function TasksPage() {
                         key={status}
                         onDragOver={handleDragOver}
                         onDrop={(e) => handleDrop(e, status)}
-                        className={`rounded-xl border ${cfg.bg} ${cfg.border} flex flex-col`}
+                        className={`rounded-2xl border ${cfg.border} ${cfg.bg} backdrop-blur-md flex flex-col p-3 shadow-sm min-h-[480px] transition-all`}
                       >
-                        <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 dark:border-gray-800">
-                          <Icon className={`h-4 w-4 ${cfg.iconBg}`} />
-                          <span className={`text-sm font-medium ${cfg.color}`}>{cfg.label}</span>
-                          <span className="ml-auto text-xs font-semibold text-gray-400 bg-white dark:bg-gray-800 px-2 py-0.5 rounded-full">
+                        <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-neutral-200/50 dark:border-white/5">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${cfg.dotBg}`} />
+                            <Icon className={`h-3.5 w-3.5 ${cfg.iconBg}`} />
+                            <span className={`text-xs font-bold ${cfg.color}`}>{cfg.label}</span>
+                          </div>
+                          <span className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 bg-white/80 dark:bg-white/10 px-2 py-0.5 rounded-full">
                             {items.length}
                           </span>
                         </div>
-                        <div className="p-2 space-y-2 flex-1 overflow-y-auto max-h-[600px]">
+
+                        <div className="space-y-2.5 flex-1 overflow-y-auto max-h-[640px] pr-0.5">
                           {items.length === 0 && (
-                            <div className="text-center py-8 text-xs text-gray-400">Drop tasks here</div>
+                            <div className="h-32 flex flex-col items-center justify-center border border-dashed border-neutral-200/60 dark:border-white/10 rounded-xl text-[11px] text-neutral-400 text-center p-2">
+                              Drop tasks here
+                            </div>
                           )}
                           {items.map((task) => (
                             <div
@@ -576,32 +745,35 @@ export default function TasksPage() {
                               draggable
                               onDragStart={(e) => handleDragStart(e, task.id, task.status ?? "")}
                               onClick={() => setDetailTaskId(task.id)}
-                              className="bg-white dark:bg-gray-900 rounded-lg border border-gray-100 dark:border-gray-800 p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer active:opacity-60"
+                              className="bg-white/90 dark:bg-card-dark/90 backdrop-blur-md rounded-xl border border-neutral-200/70 dark:border-white/10 p-3.5 shadow-xs hover:shadow-md hover:border-brand-500/40 transition-all cursor-pointer active:opacity-60 group"
                             >
                               <div className="flex items-start justify-between gap-2 mb-2">
-                                <p className="text-sm font-medium text-gray-900 dark:text-white leading-snug line-clamp-2 flex-1">
+                                <p className="text-xs font-bold text-neutral-900 dark:text-white leading-snug line-clamp-2 flex-1 group-hover:text-brand-500 transition-colors">
                                   {task.title}
                                 </p>
+                              </div>
+
+                              {task.description && (
+                                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mb-2 line-clamp-2">
+                                  {task.description}
+                                </p>
+                              )}
+
+                              <div className="flex items-center justify-between mt-2 pt-2 border-t border-neutral-100 dark:border-white/5">
                                 <span className="shrink-0">
                                   <PriorityBadge priority={task.priority} />
                                 </span>
-                              </div>
-                              {task.description && (
-                                <p className="text-xs text-gray-400 mb-2 line-clamp-2">{task.description}</p>
-                              )}
-                              <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50 dark:border-gray-800">
-                                <div className="flex items-center gap-1.5">
+                                <div className="flex items-center gap-1.5 ml-auto">
                                   <AssigneeAvatars assignees={task.assignees} max={2} />
                                 </div>
-                                <div className="flex items-center gap-2 text-xs text-gray-400">
-                                  {task.dueDate && (
-                                    <span className="flex items-center gap-1">
-                                      <CalendarDays className="h-3 w-3" />
-                                      {formatDate(task.dueDate)}
-                                    </span>
-                                  )}
-                                </div>
                               </div>
+
+                              {task.dueDate && (
+                                <div className="mt-2 text-[10px] font-semibold text-neutral-400 flex items-center gap-1">
+                                  <CalendarDays className="h-3 w-3" />
+                                  {formatDate(task.dueDate)}
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -611,12 +783,13 @@ export default function TasksPage() {
                 </div>
               )}
 
+              {/* ── View: List ────────────────────────────────────────────────── */}
               {viewMode === "list" && (
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {tasks.map((task) => (
-                    <div
+                    <GlassCard
                       key={task.id}
-                      className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3 flex items-center gap-4 hover:shadow-sm transition-shadow"
+                      className="px-4 py-3.5 flex items-center gap-4 hover:border-brand-500/30 transition-all"
                     >
                       <button
                         onClick={() => {
@@ -624,45 +797,47 @@ export default function TasksPage() {
                             task.status === "DONE"
                               ? "TODO"
                               : task.status === "TODO"
-                                ? "IN_PROGRESS"
-                                : "DONE";
+                              ? "IN_PROGRESS"
+                              : "DONE";
                           handleQuickUpdate(task.id, "status", next);
                         }}
-                        className={`shrink-0 ${
+                        className={`shrink-0 transition-colors ${
                           task.status === "DONE"
-                            ? "text-green-500"
-                            : "text-gray-300 dark:text-gray-600 hover:text-gray-400"
+                            ? "text-emerald-500"
+                            : "text-neutral-300 dark:text-neutral-600 hover:text-brand-500"
                         }`}
                       >
                         <CheckCircle2 className="h-5 w-5" />
                       </button>
+
                       <div
                         className={`flex-1 min-w-0 cursor-pointer ${
-                          task.status === "DONE" ? "line-through text-gray-400" : ""
+                          task.status === "DONE" ? "line-through text-neutral-400 dark:text-neutral-500" : ""
                         }`}
                         onClick={() => setDetailTaskId(task.id)}
                       >
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        <p className="text-sm font-semibold text-neutral-900 dark:text-white truncate">
                           {task.title}
                         </p>
                       </div>
+
                       <div className="flex items-center gap-3 shrink-0">
                         <PriorityBadge priority={task.priority} />
                         <AssigneeAvatars assignees={task.assignees} max={2} />
                         {task.dueDate && (
-                          <span className="text-xs text-gray-400 flex items-center gap-1">
-                            <CalendarDays className="h-3 w-3" />
+                          <span className="text-xs text-neutral-400 flex items-center gap-1">
+                            <CalendarDays className="h-3.5 w-3.5" />
                             {formatDate(task.dueDate)}
                           </span>
                         )}
                         <button
                           onClick={() => setDeleteConfirm(task)}
-                          className="p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors"
+                          className="p-1 rounded-lg hover:bg-rose-500/10 text-neutral-400 hover:text-rose-500 transition-colors"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
-                    </div>
+                    </GlassCard>
                   ))}
                   <Pagination page={page} totalPages={pagination?.totalPages || 1} onChange={setPage} />
                 </div>
@@ -673,38 +848,41 @@ export default function TasksPage() {
       )}
 
       {/* ── Create Task Modal ──────────────────────────────────────────────────── */}
-      <Modal open={createModalOpen} onClose={() => setCreateModalOpen(false)} title="Create Task" size="lg">
+      <Modal open={createModalOpen} onClose={() => setCreateModalOpen(false)} title="Create New Sprint Task" size="lg">
         <form onSubmit={handleCreateSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1.5">
+              Task Title
+            </label>
             <Input
               value={createForm.title}
               onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
-              placeholder="Enter task title"
+              placeholder="e.g. Implement multi-factor authentication callback"
               autoFocus
+              className="bg-neutral-50 dark:bg-card-dark"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Description
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1.5">
+              Description & Acceptance Criteria
             </label>
             <textarea
               value={createForm.description}
               onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
               rows={3}
-              placeholder="Optional description…"
-              className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none transition-colors"
+              placeholder="Provide context, links, or requirements for contributors…"
+              className="w-full rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-card-dark text-neutral-900 dark:text-white px-3.5 py-2.5 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none transition-colors"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Priority
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1.5">
+                Priority Level
               </label>
               <Select
                 value={createForm.priority}
                 onChange={(e) => setCreateForm({ ...createForm, priority: e.target.value })}
-                className="w-full h-10 px-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+                className="w-full h-11 px-3 rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-card-dark text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
               >
                 <option value="LOW">Low</option>
                 <option value="MEDIUM">Medium</option>
@@ -712,26 +890,26 @@ export default function TasksPage() {
               </Select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Due Date
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1.5">
+                Target Due Date
               </label>
               <input
                 type="date"
                 value={createForm.dueDate}
                 onChange={(e) => setCreateForm({ ...createForm, dueDate: e.target.value })}
-                className="w-full h-10 px-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+                className="w-full h-11 px-3 rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-card-dark text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
               />
             </div>
           </div>
 
           {/* Departments */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1.5">
               Departments
             </label>
             <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
               {(departmentsData?.departments ?? []).length === 0 && (
-                <p className="text-xs text-gray-400">No departments yet</p>
+                <p className="text-xs text-neutral-400">No departments configured</p>
               )}
               {(departmentsData?.departments ?? []).map((d) => {
                 const active = createForm.departmentIds.includes(d.id);
@@ -747,10 +925,10 @@ export default function TasksPage() {
                           : [...f.departmentIds, d.id],
                       }))
                     }
-                    className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                    className={`text-xs px-3 py-1 rounded-full border font-semibold transition-colors ${
                       active
-                        ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-primary-300 dark:border-primary-700"
-                        : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                        ? "bg-brand-500/10 text-brand-600 dark:text-brand-400 border-brand-500/30"
+                        : "border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/5"
                     }`}
                   >
                     {d.name}
@@ -762,12 +940,12 @@ export default function TasksPage() {
 
           {/* Assignees */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Assignees
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1.5">
+              Assign Contributor
             </label>
             <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
               {projectMembers.length === 0 && (
-                <p className="text-xs text-gray-400">No members available</p>
+                <p className="text-xs text-neutral-400">No members available in this organization</p>
               )}
               {projectMembers.map((m) => {
                 const u = m.user;
@@ -787,10 +965,10 @@ export default function TasksPage() {
                           : [...f.assigneeIds, m.userId],
                       }))
                     }
-                    className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                    className={`text-xs px-3 py-1 rounded-full border font-semibold transition-colors ${
                       active
-                        ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-primary-300 dark:border-primary-700"
-                        : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                        ? "bg-brand-500/10 text-brand-600 dark:text-brand-400 border-brand-500/30"
+                        : "border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/5"
                     }`}
                   >
                     {name}
@@ -800,23 +978,23 @@ export default function TasksPage() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <Button type="button" variant="outline" onClick={() => setCreateModalOpen(false)}>
+          <div className="flex justify-end gap-3 pt-3">
+            <GlassButton type="button" variant="ghost" onClick={() => setCreateModalOpen(false)}>
               Cancel
-            </Button>
-            <Button type="submit" isLoading={createTask.isPending}>
-              Create Task
-            </Button>
+            </GlassButton>
+            <GlassButton type="submit" variant="primary" isLoading={createTask.isPending}>
+              Create Sprint Task
+            </GlassButton>
           </div>
         </form>
       </Modal>
 
-      {/* ── Task Detail Panel ──────────────────────────────────────────────────── */}
-      <Modal open={!!detailTaskId} onClose={() => setDetailTaskId(null)} title="Task Details" size="xl">
+      {/* ── Task Detail Modal ──────────────────────────────────────────────────── */}
+      <Modal open={!!detailTaskId} onClose={() => setDetailTaskId(null)} title="Task Inspection & Tracking" size="xl">
         {detailTask ? (
-          <div className="space-y-5">
-            {/* Title & Quick Actions */}
-            <div>
+          <div className="space-y-6">
+            {/* Title & Quick Status Bar */}
+            <div className="pb-4 border-b border-neutral-200/60 dark:border-white/10">
               <input
                 defaultValue={detailTask.title}
                 onBlur={(e) => {
@@ -825,15 +1003,15 @@ export default function TasksPage() {
                     handleQuickUpdate(detailTask.id, "title", val);
                   }
                 }}
-                className="w-full text-lg font-semibold bg-transparent border-none outline-none text-gray-900 dark:text-white px-0"
+                className="w-full text-xl font-bold bg-transparent border-none outline-none text-neutral-900 dark:text-white px-0 focus:ring-0"
               />
               <div className="flex flex-wrap items-center gap-3 mt-3">
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-gray-400">Status:</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Status:</label>
                   <Select
                     value={detailTask.status}
                     onChange={(e) => handleQuickUpdate(detailTask.id, "status", e.target.value)}
-                    className={`text-xs font-medium rounded-lg px-2 py-1 border ${
+                    className={`text-xs font-semibold rounded-lg px-2.5 py-1 border ${
                       STATUS_CONFIG[detailTask.status ?? ""]?.bg
                     } ${STATUS_CONFIG[detailTask.status ?? ""]?.color} ${
                       STATUS_CONFIG[detailTask.status ?? ""]?.border
@@ -847,11 +1025,11 @@ export default function TasksPage() {
                   </Select>
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-gray-400">Priority:</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Priority:</label>
                   <Select
                     value={detailTask.priority}
                     onChange={(e) => handleQuickUpdate(detailTask.id, "priority", e.target.value)}
-                    className={`text-xs font-medium rounded-lg px-2 py-1 border ${
+                    className={`text-xs font-semibold rounded-lg px-2.5 py-1 border ${
                       PRIORITY_BG[detailTask.priority ?? ""]
                     } focus:outline-none cursor-pointer`}
                   >
@@ -863,7 +1041,7 @@ export default function TasksPage() {
                   </Select>
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-gray-400">Due:</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Due:</label>
                   <input
                     type="date"
                     value={detailTask.dueDate ? detailTask.dueDate.split("T")[0] : ""}
@@ -871,7 +1049,7 @@ export default function TasksPage() {
                       const val = e.target.value ? new Date(e.target.value).toISOString() : null;
                       handleQuickUpdate(detailTask.id, "dueDate", val);
                     }}
-                    className="text-xs rounded-lg px-2 py-1 border border-gray-200 dark:border-gray-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="text-xs rounded-lg px-2.5 py-1 border border-neutral-200 dark:border-white/10 bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
               </div>
@@ -879,7 +1057,9 @@ export default function TasksPage() {
 
             {/* Description */}
             <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1">Description</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 mb-1.5">
+                Description
+              </label>
               <textarea
                 defaultValue={detailTask.description || ""}
                 onBlur={(e) => {
@@ -889,33 +1069,37 @@ export default function TasksPage() {
                   }
                 }}
                 rows={3}
-                placeholder="Add a description…"
-                className="w-full rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none transition-colors"
+                placeholder="Add acceptance criteria or technical context…"
+                className="w-full rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-card-dark text-neutral-900 dark:text-white px-3.5 py-2.5 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none transition-colors"
               />
             </div>
 
             {/* Assignees */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-medium text-gray-400">Assignees</label>
-                <Button size="sm" variant="ghost" onClick={() => setDetailAssignModal(true)}>
-                  <UserPlus className="h-3.5 w-3.5 mr-1" /> Assign
-                </Button>
+                <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+                  Assigned Contributors
+                </label>
+                <GlassButton size="sm" variant="ghost" onClick={() => setDetailAssignModal(true)}>
+                  <UserPlus className="h-3.5 w-3.5 mr-1 text-brand-500" /> Assign
+                </GlassButton>
               </div>
               <div className="flex flex-wrap gap-2">
-                {detailTask.assignees?.length === 0 && <p className="text-xs text-gray-400">No assignees</p>}
+                {detailTask.assignees?.length === 0 && (
+                  <p className="text-xs text-neutral-400">No assignees assigned</p>
+                )}
                 {detailTask.assignees?.map((a) => (
                   <div
                     key={a.userId}
-                    className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 rounded-full pl-1 pr-1.5 py-1 text-xs"
+                    className="flex items-center gap-1.5 bg-neutral-100 dark:bg-white/5 border border-neutral-200/60 dark:border-white/10 rounded-full pl-1.5 pr-2 py-1 text-xs"
                   >
                     <UserAvatar user={a.user} />
-                    <span className="text-gray-700 dark:text-gray-300">
+                    <span className="text-neutral-700 dark:text-neutral-300 font-medium">
                       {a.user?.firstName ? `${a.user.firstName} ${a.user.lastName || ""}` : a.user?.email || "Unknown"}
                     </span>
                     <button
                       onClick={() => removeAssignee.mutate({ userId: a.userId })}
-                      className="ml-0.5 p-0.5 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-500 transition-colors"
+                      className="ml-0.5 p-0.5 rounded-full hover:bg-rose-500/10 text-neutral-400 hover:text-rose-500 transition-colors"
                       aria-label="Remove assignee"
                     >
                       <X className="h-3 w-3" />
@@ -925,48 +1109,105 @@ export default function TasksPage() {
               </div>
             </div>
 
-            {/* Timeline Info */}
-            <div className="text-xs text-gray-400 space-y-1 border-t border-gray-100 dark:border-gray-800 pt-3">
-              <div className="flex items-center gap-4">
-                <span>Created {formatDateTime(detailTask.createdAt)}</span>
-                {detailTask.createdBy && (
-                  <span>
-                    by {detailTask.createdBy.firstName || detailTask.createdBy.email}
-                  </span>
-                )}
-              </div>
-              {detailTask.completedAt && <span>Completed {formatDateTime(detailTask.completedAt)}</span>}
+            {/* Time Tracking */}
+            <div className="border-t border-neutral-200/60 dark:border-white/10 pt-4">
+              <h4 className="text-sm font-bold text-neutral-900 dark:text-white mb-3 flex items-center gap-2">
+                <Timer className="h-4 w-4 text-brand-500" /> Sprint Timer & Hours
+              </h4>
+              {(() => {
+                const running = timeData?.items?.find((e) => !e.endedAt);
+                return (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      {running ? (
+                        <GlassButton size="sm" variant="danger" onClick={() => stopTimer.mutate(running.id)}>
+                          <Square className="h-3.5 w-3.5 mr-1" /> Stop Timer
+                        </GlassButton>
+                      ) : (
+                        <GlassButton
+                          size="sm"
+                          variant="primary"
+                          onClick={() => startTimer.mutate({})}
+                          disabled={startTimer.isPending}
+                        >
+                          <Play className="h-3.5 w-3.5 mr-1" /> Start Timer
+                        </GlassButton>
+                      )}
+                      <span className="text-xs font-semibold text-neutral-500 flex items-center gap-1.5">
+                        {running && (
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                          </span>
+                        )}
+                        {running ? "Session currently running" : "No active session"}
+                      </span>
+                    </div>
+                    {timeData?.items?.length ? (
+                      <ul className="space-y-1.5 max-h-32 overflow-y-auto">
+                        {timeData.items.map((e) => (
+                          <li
+                            key={e.id}
+                            className="flex items-center justify-between text-xs text-neutral-600 dark:text-neutral-300 p-2 rounded-lg bg-neutral-50 dark:bg-white/[0.02]"
+                          >
+                            <span>
+                              {formatDateTime(e.startedAt)} → {e.endedAt ? formatDateTime(e.endedAt) : "running"}
+                            </span>
+                            <span className="flex items-center gap-2">
+                              <span className="font-semibold text-brand-500">
+                                {e.durationMinutes ? `${e.durationMinutes}m` : ""}
+                              </span>
+                              {e.endedAt && (
+                                <button
+                                  onClick={() => deleteTimeEntry.mutate(e.id)}
+                                  className="text-neutral-400 hover:text-rose-500"
+                                  aria-label="Delete time entry"
+                                >
+                                  <X className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-neutral-400">No time logged yet</p>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
-            {/* Comments */}
-            <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
-              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-gray-400" />
-                Comments ({comments?.length || 0})
+            {/* Comments Thread */}
+            <div className="border-t border-neutral-200/60 dark:border-white/10 pt-4">
+              <h4 className="text-sm font-bold text-neutral-900 dark:text-white mb-3 flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-brand-500" />
+                Comments & Mentions ({comments?.length || 0})
               </h4>
               <form onSubmit={handleAddComment} className="flex gap-2 mb-2">
                 <input
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Write a comment…"
-                  className="flex-1 h-9 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+                  placeholder="Share updates or feedback with team…"
+                  className="flex-1 h-10 rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-card-dark px-3.5 text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
                 />
-                <Button
+                <GlassButton
                   type="submit"
                   size="sm"
+                  variant="primary"
                   disabled={!commentText.trim()}
                   isLoading={addComment.isPending}
                 >
-                  Send
-                </Button>
+                  Post
+                </GlassButton>
               </form>
               <div className="flex items-center gap-2 mb-3">
                 <button
                   type="button"
                   onClick={() => setShowMentionList((v) => !v)}
-                  className="text-xs text-primary-500 hover:underline"
+                  className="text-xs text-brand-500 hover:underline font-semibold"
                 >
-                  Mention a member
+                  @ Mention Contributor
                 </button>
                 {commentMentions.length > 0 && (
                   <div className="flex flex-wrap gap-1">
@@ -975,7 +1216,7 @@ export default function TasksPage() {
                       return (
                         <span
                           key={id}
-                          className="text-[10px] bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded px-1.5 py-0.5 flex items-center gap-1"
+                          className="text-[10px] bg-brand-500/10 text-brand-600 dark:text-brand-400 rounded-full px-2 py-0.5 font-bold flex items-center gap-1"
                         >
                           @{m?.user?.firstName || m?.user?.email || "user"}
                           <button type="button" onClick={() => setCommentMentions((p) => p.filter((x) => x !== id))}>
@@ -988,9 +1229,12 @@ export default function TasksPage() {
                 )}
               </div>
               {showMentionList && (
-                <div className="mb-3 max-h-32 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-2 space-y-1">
+                <div className="mb-3 max-h-32 overflow-y-auto border border-neutral-200 dark:border-white/10 rounded-xl p-2.5 space-y-1 bg-neutral-50 dark:bg-card-dark">
                   {projectMembers.map((m) => (
-                    <label key={m.user?.id} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 cursor-pointer">
+                    <label
+                      key={m.user?.id}
+                      className="flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-300 cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/5 p-1 rounded-md"
+                    >
                       <input
                         type="checkbox"
                         checked={commentMentions.includes(m.user?.id ?? "")}
@@ -1002,32 +1246,34 @@ export default function TasksPage() {
                           )
                         }
                       />
-                      <span>{m.user?.firstName ? `${m.user.firstName} ${m.user.lastName || ""}` : m.user?.email || "Unknown"}</span>
+                      <span>
+                        {m.user?.firstName ? `${m.user.firstName} ${m.user.lastName || ""}` : m.user?.email || "Unknown"}
+                      </span>
                     </label>
                   ))}
                 </div>
               )}
-              <div className="space-y-3 max-h-60 overflow-y-auto">
+              <div className="space-y-3 max-h-56 overflow-y-auto">
                 {comments?.length === 0 && (
-                  <p className="text-xs text-gray-400 text-center py-4">No comments yet</p>
+                  <p className="text-xs text-neutral-400 text-center py-4">No comments posted yet</p>
                 )}
                 {comments?.map((c) => {
                   const isAuthor = c.user?.id === currentUser?.id;
                   const isEditing = editingComment?.id === c.id;
                   return (
-                    <div key={c.id} className="flex gap-2.5">
+                    <div key={c.id} className="flex gap-3">
                       <UserAvatar user={c.user} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-gray-900 dark:text-white">
+                          <span className="text-xs font-bold text-neutral-900 dark:text-white">
                             {c.user?.firstName ? `${c.user.firstName} ${c.user.lastName || ""}` : c.user?.email || "Unknown"}
                           </span>
-                          <span className="text-[10px] text-gray-400">{formatDateTime(c.createdAt)}</span>
-                          {c.editedAt && <span className="text-[10px] text-gray-400">(edited)</span>}
+                          <span className="text-[10px] text-neutral-400">{formatDateTime(c.createdAt)}</span>
+                          {c.editedAt && <span className="text-[10px] text-neutral-400">(edited)</span>}
                           {isAuthor && !isEditing && (
                             <button
                               onClick={() => setEditingComment({ id: c.id, text: c.comment })}
-                              className="ml-auto p-0.5 rounded text-gray-400 hover:text-primary-500 transition-colors"
+                              className="ml-auto p-0.5 rounded text-neutral-400 hover:text-brand-500 transition-colors"
                               aria-label="Edit comment"
                             >
                               <Pencil className="h-3 w-3" />
@@ -1035,30 +1281,24 @@ export default function TasksPage() {
                           )}
                         </div>
                         {isEditing ? (
-                          <div className="mt-1 flex gap-2">
+                          <div className="mt-1.5 flex gap-2">
                             <input
                               autoFocus
                               value={editingComment?.text ?? ""}
                               onChange={(e) => setEditingComment({ id: c.id, text: e.target.value })}
-                              className="flex-1 h-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-2 text-sm"
+                              className="flex-1 h-9 rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-card-dark px-2.5 text-sm"
                             />
-                            <Button size="sm" onClick={() => handleUpdateComment(c.id)}>Save</Button>
-                            <Button size="sm" variant="ghost" onClick={() => setEditingComment(null)}>Cancel</Button>
+                            <GlassButton size="sm" variant="primary" onClick={() => handleUpdateComment(c.id)}>
+                              Save
+                            </GlassButton>
+                            <GlassButton size="sm" variant="ghost" onClick={() => setEditingComment(null)}>
+                              Cancel
+                            </GlassButton>
                           </div>
                         ) : (
-                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-0.5 whitespace-pre-wrap">{c.comment}</p>
-                        )}
-                        {c.mentions && c.mentions.length > 0 && (
-                          <div className="mt-1 flex flex-wrap gap-1">
-                            {c.mentions.map((m) => (
-                              <span
-                                key={m.userId}
-                                className="text-[10px] bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded px-1.5 py-0.5"
-                              >
-                                @{m.user?.firstName || m.user?.email || "user"}
-                              </span>
-                            ))}
-                          </div>
+                          <p className="text-xs sm:text-sm text-neutral-700 dark:text-neutral-300 mt-1 whitespace-pre-wrap leading-relaxed">
+                            {c.comment}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -1067,75 +1307,26 @@ export default function TasksPage() {
               </div>
             </div>
 
-            {/* Time Tracking */}
-            <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
-              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <Timer className="h-4 w-4 text-gray-400" /> Time Tracking
-              </h4>
-              {(() => {
-                const running = timeData?.items?.find((e) => !e.endedAt);
-                return (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      {running ? (
-                        <Button size="sm" variant="ghost" onClick={() => stopTimer.mutate(running.id)}>
-                          <Square className="h-3.5 w-3.5 mr-1" /> Stop
-                        </Button>
-                      ) : (
-                        <Button size="sm" onClick={() => startTimer.mutate({})} disabled={startTimer.isPending}>
-                          <Play className="h-3.5 w-3.5 mr-1" /> Start
-                        </Button>
-                      )}
-                      <span className="text-xs text-gray-400">{running ? "Timer running" : "No active timer"}</span>
-                    </div>
-                    {timeData?.items?.length ? (
-                      <ul className="space-y-1 max-h-28 overflow-y-auto">
-                        {timeData.items.map((e) => (
-                          <li key={e.id} className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-300">
-                            <span>
-                              {formatDateTime(e.startedAt)} → {e.endedAt ? formatDateTime(e.endedAt) : "running"}
-                            </span>
-                            <span className="flex items-center gap-2">
-                              <span className="text-gray-400">{e.durationMinutes ? `${e.durationMinutes}m` : ""}</span>
-                              {e.endedAt && (
-                                <button
-                                  onClick={() => deleteTimeEntry.mutate(e.id)}
-                                  className="text-gray-400 hover:text-red-500"
-                                  aria-label="Delete time entry"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              )}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-xs text-gray-400">No time logged</p>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-
-            {/* Activity */}
-            <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
-              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <History className="h-4 w-4 text-gray-400" /> Activity
+            {/* Activity History */}
+            <div className="border-t border-neutral-200/60 dark:border-white/10 pt-4">
+              <h4 className="text-sm font-bold text-neutral-900 dark:text-white mb-2 flex items-center gap-2">
+                <History className="h-4 w-4 text-neutral-400" /> Audit Log
               </h4>
               {activityData?.items?.length ? (
-                <ul className="space-y-1.5 max-h-40 overflow-y-auto">
+                <ul className="space-y-1.5 max-h-36 overflow-y-auto text-xs text-neutral-500">
                   {activityData.items.map((a) => (
-                    <li key={a.id} className="text-xs text-gray-600 dark:text-gray-300">
-                      <span className="text-gray-400">{formatDateTime(a.createdAt)}</span>{" "}
-                      <span className="font-medium">{a.user?.firstName || a.user?.email || "System"}</span>{" "}
+                    <li key={a.id}>
+                      <span className="text-neutral-400">{formatDateTime(a.createdAt)}</span> —{" "}
+                      <span className="font-semibold text-neutral-700 dark:text-neutral-300">
+                        {a.user?.firstName || a.user?.email || "System"}
+                      </span>{" "}
                       {a.action}
-                      {a.field && <span className="text-gray-400"> ({a.field})</span>}
+                      {a.field && <span className="text-neutral-400"> ({a.field})</span>}
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-xs text-gray-400">No activity recorded</p>
+                <p className="text-xs text-neutral-400">No activity recorded</p>
               )}
             </div>
           </div>
@@ -1145,10 +1336,10 @@ export default function TasksPage() {
       </Modal>
 
       {/* Assignee Picker Modal */}
-      <Modal open={detailAssignModal} onClose={() => setDetailAssignModal(false)} title="Add Assignee" size="sm">
-        <div className="space-y-2 max-h-64 overflow-y-auto">
+      <Modal open={detailAssignModal} onClose={() => setDetailAssignModal(false)} title="Assign Contributor" size="sm">
+        <div className="space-y-1.5 max-h-64 overflow-y-auto">
           {availableAssignees.length === 0 && (
-            <p className="text-sm text-gray-400 text-center py-4">All members are already assigned</p>
+            <p className="text-sm text-neutral-400 text-center py-4">All organization members are assigned</p>
           )}
           {availableAssignees.map((m) => (
             <button
@@ -1157,14 +1348,14 @@ export default function TasksPage() {
                 handleAddAssigneeToTask(m.userId);
                 setDetailAssignModal(false);
               }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors text-left"
             >
               <UserAvatar user={m.user} />
               <div className="min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                <p className="text-sm font-semibold text-neutral-900 dark:text-white truncate">
                   {m.user?.firstName ? `${m.user.firstName} ${m.user.lastName || ""}` : m.user?.email || "Unknown"}
                 </p>
-                <p className="text-xs text-gray-400 truncate">{m.user?.email}</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">{m.user?.email}</p>
               </div>
             </button>
           ))}
@@ -1184,7 +1375,7 @@ export default function TasksPage() {
               },
             });
         }}
-        title="Delete Task"
+        title="Delete Sprint Task"
         description={`Are you sure you want to delete "${deleteConfirm?.title}"? This action cannot be undone.`}
         confirmLabel="Delete Task"
         isLoading={deleteTask.isPending}
