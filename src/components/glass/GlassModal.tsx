@@ -61,7 +61,7 @@ export function GlassModal({
       aria-describedby={description ? "modal-description" : undefined}
     >
       <motion.div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/75 backdrop-blur-md"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -73,13 +73,15 @@ export function GlassModal({
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: "spring", damping: 30, stiffness: 400 }}
         className={cn(
-          "glass-modal relative flex max-h-[85vh] w-full flex-col overflow-hidden rounded-2xl",
+          "relative flex max-h-[85vh] w-full flex-col overflow-hidden rounded-2xl bg-white dark:bg-[#0c1220] border border-neutral-200/90 dark:border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)]",
           sizeStyles[size],
           className
         )}
       >
+        {/* Top accent line */}
+        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-accent-cyan via-accent-blue to-accent-indigo pointer-events-none" />
         {(title || description) && (
-          <div className="flex flex-shrink-0 items-start justify-between gap-4 border-b border-glass-border/50 p-5">
+          <div className="flex flex-shrink-0 items-start justify-between gap-4 border-b border-neutral-100 dark:border-white/[0.08] p-5">
             <div>
               {title && (
                 <h2 id="modal-title" className="text-heading-sm font-semibold text-text-primary">

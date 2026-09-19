@@ -3,13 +3,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useUpdateTenant } from "@/features/tenant/tenantQueries";
 import Modal from "@/components/ui/Modal";
-import { Button } from "@/components/ui/Button";
+import { GlassButton } from "@/components/glass/GlassButton";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import type { Tenant } from "@/types/domain";
 
 const schema = z.object({
-  name: z.string().min(2).max(100).optional(),
+  name: z.string().min(2, "Name must be at least 2 characters").max(100).optional(),
   plan: z.enum(["FREE", "PRO", "ENTERPRISE"]).optional(),
 });
 
@@ -38,39 +37,53 @@ export default function EditTenantModal({ open, onClose, tenant }: EditTenantMod
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Edit Organization">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Organization name
+    <Modal open={open} onClose={onClose} title="Edit Organization Profile" size="md">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 pt-1">
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1.5">
+            Organization Name
           </label>
-          <Input {...register("name")} error={errors.name?.message} />
+          <Input
+            {...register("name")}
+            error={errors.name?.message}
+            className="bg-neutral-50 dark:bg-[#080d1a] border-neutral-200 dark:border-white/10"
+          />
         </div>
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Plan</label>
+
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1.5">
+            Subscription Tier
+          </label>
           <Controller
             name="plan"
             control={control}
             render={({ field }) => (
-              <Select
+              <select
                 value={field.value}
-                onValueChange={field.onChange}
-                className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                onChange={field.onChange}
+                className="w-full h-11 px-3 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#080d1a] text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 transition-all"
               >
-                <option value="FREE">Free</option>
-                <option value="PRO">Pro</option>
+                <option value="FREE">Free Tier</option>
+                <option value="PRO">Pro Tier</option>
                 <option value="ENTERPRISE">Enterprise</option>
-              </Select>
+              </select>
             )}
           />
         </div>
-        <div className="flex gap-3 justify-end pt-2">
-          <Button variant="outline" type="button" onClick={onClose}>
+
+        <div className="flex justify-end gap-3 pt-4 border-t border-neutral-100 dark:border-white/[0.08]">
+          <GlassButton type="button" variant="ghost" onClick={onClose}>
             Cancel
-          </Button>
-          <Button type="submit" isLoading={update.isPending} disabled={!isDirty}>
+          </GlassButton>
+          <GlassButton
+            type="submit"
+            variant="primary"
+            isLoading={update.isPending}
+            disabled={!isDirty}
+            className="font-bold shadow-lg shadow-accent-cyan/25"
+          >
             Save Changes
-          </Button>
+          </GlassButton>
         </div>
       </form>
     </Modal>

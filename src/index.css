@@ -94,10 +94,10 @@ select option {
   --aurora-4: rgba(139, 92, 246, 0.04);   /* Violet - barely visible */
   --aurora-base: rgba(7, 9, 15, 0.6);
 
-  /* Glass surfaces - DARK translucent glass (not bright frosted white) */
+  /* Glass surfaces - Solid high-contrast surfaces for floating popovers, menus & modals */
   --glass-bg: rgba(255, 255, 255, 0.04);
-  --glass-bg-strong: rgba(255, 255, 255, 0.08);
-  --glass-bg-modal: rgba(10, 14, 26, 0.85);
+  --glass-bg-strong: #0e1424;
+  --glass-bg-modal: #0b0f19;
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-border-strong: rgba(255, 255, 255, 0.14);
 
@@ -146,9 +146,9 @@ select option {
   --aurora-base: rgba(248, 250, 252, 0.4);
 
   /* Glass - clean white frosted in light mode */
-  --glass-bg: rgba(255, 255, 255, 0.75);
-  --glass-bg-strong: rgba(255, 255, 255, 0.88);
-  --glass-bg-modal: rgba(255, 255, 255, 0.95);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-bg-strong: #ffffff;
+  --glass-bg-modal: #ffffff;
   --glass-border: rgba(15, 23, 42, 0.08);
   --glass-border-strong: rgba(15, 23, 42, 0.14);
 
@@ -318,22 +318,18 @@ select option {
     box-shadow: var(--shadow-glass-lg);
   }
 
-  /* Glass strong - for floating UI (dropdowns, tooltips) */
+  /* Glass strong - for floating UI (dropdowns, tooltips, select popovers) */
   .glass-strong {
     background: var(--glass-bg-strong);
     border: 1px solid var(--glass-border-strong);
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
-    box-shadow: var(--shadow-glass-lg);
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--glass-border-strong);
   }
 
-  /* Glass modal - maximum translucency for modals/dialogs */
+  /* Glass modal - solid high-contrast surface for modals/dialogs */
   .glass-modal {
     background: var(--glass-bg-modal);
     border: 1px solid var(--glass-border-strong);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    box-shadow: var(--shadow-glass-lg);
+    box-shadow: 0 25px 70px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--glass-border-strong);
   }
 
   /* Glass input - subtle for form fields */

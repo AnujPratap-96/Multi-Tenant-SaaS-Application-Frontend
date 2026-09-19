@@ -105,8 +105,8 @@ function ProfileDropdown() {
       </GlassButton>
 
       {open && (
-        <GlassCard variant="strong" padding="none" className="absolute top-full right-0 mt-2 w-56 animate-slide-in-up">
-          <div className="p-4 border-b border-glass-border/50">
+        <GlassCard variant="strong" padding="none" className="absolute top-full right-0 mt-2 w-56 animate-slide-in-up bg-white dark:bg-[#0e1424] border border-neutral-200 dark:border-white/10 shadow-2xl">
+          <div className="p-4 border-b border-neutral-100 dark:border-white/5">
             <p className="text-sm font-medium truncate text-text-primary">{displayName}</p>
             <p className="text-xs text-text-muted truncate">{user?.email}</p>
           </div>
@@ -194,8 +194,8 @@ function NotificationsPanel() {
       </GlassButton>
 
       {open && (
-        <GlassCard variant="strong" padding="none" className="absolute top-full right-0 mt-2 w-80 animate-slide-in-up max-h-[400px] flex flex-col">
-          <div className="p-4 border-b border-glass-border/50 flex items-center justify-between">
+        <GlassCard variant="strong" padding="none" className="absolute top-full right-0 mt-2 w-80 animate-slide-in-up max-h-[400px] flex flex-col bg-white dark:bg-[#0e1424] border border-neutral-200 dark:border-white/10 shadow-2xl">
+          <div className="p-4 border-b border-neutral-100 dark:border-white/5 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-text-primary">Notifications</h3>
             <button
               className="text-xs text-accent-cyan hover:text-accent-blue font-medium disabled:opacity-40"

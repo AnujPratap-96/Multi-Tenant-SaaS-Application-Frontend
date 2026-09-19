@@ -859,7 +859,7 @@ export default function TasksPage() {
               onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
               placeholder="e.g. Implement multi-factor authentication callback"
               autoFocus
-              className="bg-neutral-50 dark:bg-card-dark"
+              className="bg-neutral-50 dark:bg-[#080d1a] border-neutral-200 dark:border-white/10"
             />
           </div>
           <div>
@@ -871,7 +871,7 @@ export default function TasksPage() {
               onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
               rows={3}
               placeholder="Provide context, links, or requirements for contributors…"
-              className="w-full rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-card-dark text-neutral-900 dark:text-white px-3.5 py-2.5 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none transition-colors"
+              className="w-full rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#080d1a] text-neutral-900 dark:text-white px-3.5 py-2.5 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 resize-none transition-colors"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -879,15 +879,15 @@ export default function TasksPage() {
               <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1.5">
                 Priority Level
               </label>
-              <Select
+              <select
                 value={createForm.priority}
                 onChange={(e) => setCreateForm({ ...createForm, priority: e.target.value })}
-                className="w-full h-11 px-3 rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-card-dark text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+                className="w-full h-11 px-3 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#080d1a] text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 transition"
               >
                 <option value="LOW">Low</option>
                 <option value="MEDIUM">Medium</option>
                 <option value="HIGH">High</option>
-              </Select>
+              </select>
             </div>
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1.5">
@@ -897,7 +897,7 @@ export default function TasksPage() {
                 type="date"
                 value={createForm.dueDate}
                 onChange={(e) => setCreateForm({ ...createForm, dueDate: e.target.value })}
-                className="w-full h-11 px-3 rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-card-dark text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+                className="w-full h-11 px-3 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#080d1a] text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 transition"
               />
             </div>
           </div>

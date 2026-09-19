@@ -16,6 +16,11 @@ const Landing = lazy(() => import("@/pages/Landing"));
 const AcceptInvitePage = lazy(() => import("@/pages/AcceptInvitePage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
+const PrivacyPage = lazy(() => import("@/pages/legal/PrivacyPage"));
+const TermsPage = lazy(() => import("@/pages/legal/TermsPage"));
+const SecurityPage = lazy(() => import("@/pages/legal/SecurityPage"));
+const DocsPage = lazy(() => import("@/pages/legal/DocsPage"));
+
 const Login = lazy(() => import("@/pages/auth/Login"));
 const Register = lazy(() => import("@/pages/auth/Register"));
 const VerifyOtp = lazy(() => import("@/pages/auth/VerifyOtp"));
@@ -44,6 +49,22 @@ export const routes = [
   {
     path: "/",
     element: withLoader(<Landing />),
+  },
+  {
+    path: "/privacy",
+    element: withLoader(<PrivacyPage />),
+  },
+  {
+    path: "/terms",
+    element: withLoader(<TermsPage />),
+  },
+  {
+    path: "/security",
+    element: withLoader(<SecurityPage />),
+  },
+  {
+    path: "/docs",
+    element: withLoader(<DocsPage />),
   },
   {
     element: (

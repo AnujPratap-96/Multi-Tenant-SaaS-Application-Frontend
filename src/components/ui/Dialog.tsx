@@ -8,14 +8,29 @@ export interface DialogProps {
   title?: string;
   description?: string;
   children?: ReactNode;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "full";
   className?: string;
 }
 
-const sizes = { sm: "max-w-sm", md: "max-w-md", lg: "max-w-lg", xl: "max-w-2xl" };
+const sizes = {
+  sm: "max-w-md",
+  md: "max-w-lg",
+  lg: "max-w-2xl",
+  xl: "max-w-4xl",
+  "2xl": "max-w-5xl",
+  full: "max-w-6xl",
+};
 
-// F-11: focus trap, aria-modal, Escape to close, focus restore, scroll lock
-export function Dialog({ open, onClose, title, description, children, size = "md", className }: DialogProps) {
+// Modern, accessible, high-contrast modal dialog
+export function Dialog({
+  open,
+  onClose,
+  title,
+  description,
+  children,
+  size = "md",
+  className,
+}: DialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
@@ -80,7 +95,7 @@ export function Dialog({ open, onClose, title, description, children, size = "md
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-8 bg-black/75 backdrop-blur-md transition-all animate-fade-in"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
@@ -90,21 +105,30 @@ export function Dialog({ open, onClose, title, description, children, size = "md
         aria-labelledby={title ? "dialog-title" : undefined}
         aria-describedby={description ? "dialog-description" : undefined}
         className={cn(
-          "bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full border border-gray-100 dark:border-gray-800 outline-none",
+          "relative flex flex-col max-h-[90vh] w-full bg-white dark:bg-[#0c1220] rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6),0_0_40px_rgba(99,102,241,0.08)] border border-neutral-200/90 dark:border-white/10 outline-none overflow-hidden animate-scale-in",
           sizes[size],
           className
         )}
       >
+        {/* Sleek top accent highlight gradient */}
+        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-accent-cyan via-accent-blue to-accent-indigo pointer-events-none" />
+
         {(title || description) && (
-          <div className="flex items-start justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
-            <div>
+          <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-neutral-100 dark:border-white/[0.08] bg-neutral-50/50 dark:bg-white/[0.02]">
+            <div className="pr-4">
               {title && (
-                <h2 id="dialog-title" className="text-base font-semibold text-gray-900 dark:text-white">
+                <h2
+                  id="dialog-title"
+                  className="text-lg font-bold tracking-tight text-neutral-900 dark:text-white"
+                >
                   {title}
                 </h2>
               )}
               {description && (
-                <p id="dialog-description" className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                <p
+                  id="dialog-description"
+                  className="mt-1 text-sm text-neutral-500 dark:text-neutral-400"
+                >
                   {description}
                 </p>
               )}
@@ -112,13 +136,14 @@ export function Dialog({ open, onClose, title, description, children, size = "md
             <button
               onClick={onClose}
               aria-label="Close dialog"
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer p-1 rounded-md"
+              className="p-1.5 -mr-1 rounded-xl text-neutral-400 hover:text-neutral-800 dark:hover:text-white hover:bg-neutral-200/60 dark:hover:bg-white/10 transition-colors cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
         )}
-        <div className="px-6 py-5">{children}</div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar">{children}</div>
       </div>
     </div>
   );

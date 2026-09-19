@@ -742,7 +742,7 @@ export default function ProjectDetailPage() {
               value={editForm.name}
               onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
               autoFocus
-              className="bg-neutral-50 dark:bg-card-dark"
+              className="bg-neutral-50 dark:bg-[#080d1a] border-neutral-200 dark:border-white/10"
             />
           </div>
           <div>
@@ -753,7 +753,7 @@ export default function ProjectDetailPage() {
               value={editForm.description}
               onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
               rows={3}
-              className="w-full rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-card-dark text-neutral-900 dark:text-white px-3.5 py-2.5 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none transition-colors"
+              className="w-full rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#080d1a] text-neutral-900 dark:text-white px-3.5 py-2.5 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 resize-none transition-colors"
             />
           </div>
           <div className="flex justify-end gap-3 pt-3">
@@ -782,7 +782,7 @@ export default function ProjectDetailPage() {
                 onChange={(e) => setMemberSearch(e.target.value)}
                 placeholder="Search by name or email address..."
                 autoFocus
-                className="w-full pl-10 pr-3.5 h-11 rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-card-dark text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
+                className="w-full pl-10 pr-3.5 h-11 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#080d1a] text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 transition-colors"
               />
             </div>
           </div>
@@ -794,14 +794,14 @@ export default function ProjectDetailPage() {
                   key={m.userId}
                   type="button"
                   onClick={() => setSelectedUserId(m.userId)}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-brand-500/5 ${
-                    selectedUserId === m.userId ? "bg-brand-500/10 dark:bg-brand-500/20" : ""
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-accent-cyan/5 ${
+                    selectedUserId === m.userId ? "bg-accent-cyan/10 dark:bg-accent-cyan/20" : ""
                   }`}
                 >
                   <div
                     className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                       selectedUserId === m.userId
-                        ? "bg-brand-600 text-white shadow-xs"
+                        ? "bg-accent-cyan text-white shadow-xs"
                         : "bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200"
                     }`}
                   >
@@ -816,7 +816,7 @@ export default function ProjectDetailPage() {
                     <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">{m.user?.email}</p>
                   </div>
                   {selectedUserId === m.userId && (
-                    <CheckCircle2 className="h-4 w-4 text-brand-600 dark:text-brand-400 shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-accent-cyan shrink-0" />
                   )}
                 </button>
               ))}
@@ -834,14 +834,14 @@ export default function ProjectDetailPage() {
               <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1.5">
                 Assign Workspace Role
               </label>
-              <Select
+              <select
                 value={memberRole}
                 onChange={(e) => setMemberRole(e.target.value)}
-                className="w-full h-11 px-3 rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-card-dark text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+                className="w-full h-11 px-3 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#080d1a] text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 transition"
               >
                 <option value="MEMBER">Member (standard contributor)</option>
                 <option value="MAINTAINER">Maintainer (can edit project & add members)</option>
-              </Select>
+              </select>
             </div>
           )}
 

@@ -383,49 +383,52 @@ export default function ProjectsPage() {
           setModalOpen(false);
           setEditing(null);
         }}
-        title={editing ? "Edit Project Workspace" : "Create New Project"}
-        size="md"
+        title={editing ? "Edit Project Workspace" : "Create New Project Workspace"}
+        size="lg"
       >
-        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+        <form onSubmit={handleSubmit} className="space-y-5 pt-1">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1.5">
               Project Name *
             </label>
             <Input
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="e.g. Core Infrastructure v2.0"
+              placeholder="e.g. Platform Infrastructure & API Gateway"
               error={errors.name}
               autoFocus
+              className="bg-neutral-50 dark:bg-[#080d1a] border-neutral-200 dark:border-white/10"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1.5">
-              Description (optional)
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1.5">
+              Description & Objectives (Optional)
             </label>
             <textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              placeholder="Outline project objectives, milestones, and scope..."
+              placeholder="Outline project milestones, scope, deliverables, and team context…"
               rows={3}
-              className="w-full px-3 py-2 rounded-xl glass border-glass-border/60 focus:border-accent-cyan/60 text-text-primary placeholder:text-text-muted focus:outline-none text-sm transition-all resize-none"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#080d1a] text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 text-sm transition-all resize-none"
             />
           </div>
 
           {!editing && departments.length > 0 && (
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1.5">
                 Assign Departments *
               </label>
-              <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto p-2 glass rounded-xl border border-glass-border/60 scrollbar-thin">
+              <div className="grid grid-cols-2 gap-2.5 max-h-44 overflow-y-auto p-3 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#080d1a] custom-scrollbar">
                 {departments.map((dept) => {
                   const isChecked = form.departmentIds.includes(dept.id);
                   return (
                     <label
                       key={dept.id}
-                      className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer text-xs transition-colors ${
-                        isChecked ? "bg-accent-cyan/15 text-accent-cyan font-bold" : "hover:bg-tint text-text-muted"
+                      className={`flex items-center gap-2.5 p-2.5 rounded-xl cursor-pointer text-xs font-semibold border transition-all ${
+                        isChecked
+                          ? "bg-accent-cyan/15 text-accent-cyan border-accent-cyan/40"
+                          : "border-neutral-200/80 dark:border-white/5 bg-white dark:bg-[#0c1220] text-neutral-600 dark:text-neutral-400 hover:border-neutral-300 dark:hover:border-white/20"
                       }`}
                     >
                       <input
@@ -439,7 +442,7 @@ export default function ProjectsPage() {
                               : [...prev.departmentIds, dept.id],
                           }));
                         }}
-                        className="rounded border-glass-border text-accent-cyan focus:ring-accent-cyan"
+                        className="rounded border-neutral-300 dark:border-neutral-700 text-accent-cyan focus:ring-accent-cyan"
                       />
                       <span className="truncate">{dept.name}</span>
                     </label>
@@ -447,16 +450,15 @@ export default function ProjectsPage() {
                 })}
               </div>
               {errors.departments && (
-                <p className="text-xs text-danger-400 mt-1">{errors.departments}</p>
+                <p className="text-xs text-rose-500 font-medium mt-1.5">{errors.departments}</p>
               )}
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-4 border-t border-glass-border/40">
+          <div className="flex justify-end gap-3 pt-4 border-t border-neutral-100 dark:border-white/[0.08]">
             <GlassButton
               type="button"
               variant="ghost"
-              size="sm"
               onClick={() => {
                 setModalOpen(false);
                 setEditing(null);
@@ -467,15 +469,10 @@ export default function ProjectsPage() {
             <GlassButton
               type="submit"
               variant="primary"
-              size="sm"
-              disabled={createProject.isPending || updateProject.isPending}
-              className="font-bold shadow"
+              isLoading={createProject.isPending || updateProject.isPending}
+              className="font-bold shadow-lg shadow-accent-cyan/25"
             >
-              {createProject.isPending || updateProject.isPending
-                ? "Saving..."
-                : editing
-                ? "Update Project"
-                : "Create Project"}
+              {editing ? "Save Changes" : "Create Project"}
             </GlassButton>
           </div>
         </form>

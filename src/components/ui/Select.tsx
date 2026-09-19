@@ -174,7 +174,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
                 exit={{ opacity: 0, y: -8, scale: 0.97 }}
                 transition={{ type: "spring", damping: 30, stiffness: 400 }}
                 style={{ top: coords.top, left: coords.left, minWidth: coords.width }}
-                className="glass-strong fixed z-[100] max-h-72 overflow-y-auto rounded-xl p-1 shadow-glass-lg"
+                className="fixed z-[100] max-h-72 overflow-y-auto rounded-xl p-1.5 shadow-2xl bg-white dark:bg-[#0e1424] border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white"
                 role="listbox"
               >
                 {finalOptions.map((option) => {

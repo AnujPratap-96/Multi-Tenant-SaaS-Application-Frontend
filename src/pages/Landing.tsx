@@ -1144,28 +1144,121 @@ export default function Landing() {
       </section>
 
       {/* ============================================================
-          MODERN FOOTER
+          MODERN MULTI-COLUMN FOOTER
           ============================================================ */}
-      <footer className="border-t border-glass-border/50 bg-surface-950/80 py-12 px-4 sm:px-6 lg:px-8 relative z-10 text-xs text-text-muted">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-accent-cyan to-accent-blue p-2 rounded-xl">
-              <Hexagon className="h-4 w-4 text-white" />
+      <footer className="border-t border-glass-border/60 bg-surface-950/90 pt-16 pb-12 px-4 sm:px-6 lg:px-8 relative z-10 text-xs text-text-muted">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-8 lg:gap-12 mb-12">
+          {/* Brand Col */}
+          <div className="col-span-2 space-y-4">
+            <div className="flex items-center gap-2.5">
+              <div className="bg-gradient-to-br from-accent-cyan to-accent-blue p-2 rounded-xl shadow-lg shadow-accent-cyan/20">
+                <Hexagon className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-xl font-extrabold text-text-primary font-display tracking-tight">Nexus SaaS</span>
             </div>
-            <span className="text-base font-bold text-text-primary font-display">Nexus SaaS</span>
-            <span className="text-text-muted">© 2026 Nexus Cloud. All rights reserved.</span>
+            <p className="text-sm text-text-muted max-w-sm leading-relaxed">
+              The next-generation multi-tenant SaaS foundation engineered for zero-trust isolation, departmental permission matrixes, and enterprise project velocity.
+            </p>
+            <div className="flex items-center gap-2 pt-2">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-900 border border-glass-border">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span className="text-[11px] font-mono text-text-primary">All Systems Operational</span>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center gap-6">
-            {/* Real-time status pill */}
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full glass border-glass-border">
-              <span className="w-2 h-2 rounded-full bg-success-400 animate-ping" />
-              <span className="text-[11px] font-mono text-text-primary">All Systems Operational</span>
-            </div>
+          {/* Col 1: Product */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary font-display">Product</h4>
+            <ul className="space-y-2">
+              <li>
+                <a href="#features" onClick={(e) => handleScrollTo(e, "features")} className="hover:text-accent-cyan transition-colors">
+                  Multi-Tenant Engine
+                </a>
+              </li>
+              <li>
+                <a href="#security" onClick={(e) => handleScrollTo(e, "security")} className="hover:text-accent-cyan transition-colors">
+                  Role-Based Access Control
+                </a>
+              </li>
+              <li>
+                <a href="#projects" onClick={(e) => handleScrollTo(e, "projects")} className="hover:text-accent-cyan transition-colors">
+                  Workspaces & Tasks
+                </a>
+              </li>
+              <li>
+                <a href="#pricing" onClick={(e) => handleScrollTo(e, "pricing")} className="hover:text-accent-cyan transition-colors">
+                  Enterprise Plans
+                </a>
+              </li>
+            </ul>
+          </div>
 
-            <a href="#features" className="hover:text-text-primary transition-colors">Documentation</a>
-            <a href="#security" className="hover:text-text-primary transition-colors">Security</a>
-            <a href="#pricing" className="hover:text-text-primary transition-colors">Privacy</a>
+          {/* Col 2: Platform & Docs */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary font-display">Resources</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/docs" className="hover:text-accent-cyan transition-colors">
+                  Documentation & API
+                </Link>
+              </li>
+              <li>
+                <Link to="/security" className="hover:text-accent-cyan transition-colors">
+                  Security Architecture
+                </Link>
+              </li>
+              <li>
+                <Link to="/docs" className="hover:text-accent-cyan transition-colors">
+                  Quickstart Guide
+                </Link>
+              </li>
+              <li>
+                <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-accent-cyan transition-colors">
+                  Developer GitHub
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 3: Legal & Trust */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary font-display">Legal & Trust</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/privacy" className="hover:text-accent-cyan transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms" className="hover:text-accent-cyan transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link to="/security" className="hover:text-accent-cyan transition-colors">
+                  Security Center
+                </Link>
+              </li>
+              <li>
+                <Link to="/privacy" className="hover:text-accent-cyan transition-colors">
+                  GDPR / CCPA Notice
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom copyright */}
+        <div className="max-w-7xl mx-auto pt-8 border-t border-glass-border/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            © 2026 Nexus Cloud Platform Inc. All rights reserved. Zero-Trust Multi-Tenant Architecture.
+          </div>
+          <div className="flex items-center gap-5">
+            <Link to="/privacy" className="hover:text-text-primary transition-colors">Privacy</Link>
+            <Link to="/terms" className="hover:text-text-primary transition-colors">Terms</Link>
+            <Link to="/security" className="hover:text-text-primary transition-colors">Security</Link>
+            <Link to="/docs" className="hover:text-text-primary transition-colors">API Docs</Link>
           </div>
         </div>
       </footer>
