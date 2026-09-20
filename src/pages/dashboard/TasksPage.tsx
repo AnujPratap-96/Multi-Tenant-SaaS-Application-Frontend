@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   Plus,
@@ -63,14 +63,14 @@ import type { Task, User } from "@/types/domain";
 
 const PRIORITY_ICONS: Record<string, LucideIcon> = { HIGH: ArrowUp, MEDIUM: ArrowDown, LOW: ArrowDown };
 const PRIORITY_COLORS: Record<string, string> = {
-  HIGH: "text-rose-500 dark:text-rose-400",
-  MEDIUM: "text-amber-500 dark:text-amber-400",
-  LOW: "text-emerald-500 dark:text-emerald-400",
+  HIGH: "text-rose-600 dark:text-rose-400",
+  MEDIUM: "text-amber-600 dark:text-amber-400",
+  LOW: "text-emerald-600 dark:text-emerald-400",
 };
 const PRIORITY_BG: Record<string, string> = {
-  HIGH: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
-  MEDIUM: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
-  LOW: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+  HIGH: "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30",
+  MEDIUM: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
+  LOW: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
 };
 
 interface StatusConfig {
@@ -87,55 +87,55 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
   TODO: {
     label: "To Do",
     icon: Circle,
-    color: "text-neutral-500 dark:text-neutral-400",
-    bg: "bg-neutral-50/50 dark:bg-neutral-900/30",
-    border: "border-neutral-200/60 dark:border-white/10",
-    iconBg: "text-neutral-400",
-    dotBg: "bg-neutral-400",
+    color: "text-neutral-700 dark:text-neutral-300",
+    bg: "bg-neutral-100/70 dark:bg-neutral-900/40",
+    border: "border-neutral-200 dark:border-white/10",
+    iconBg: "text-neutral-500 dark:text-neutral-400",
+    dotBg: "bg-neutral-400 dark:bg-neutral-500",
   },
   IN_PROGRESS: {
     label: "In Progress",
     icon: Clock,
-    color: "text-brand-600 dark:text-brand-400",
-    bg: "bg-brand-50/20 dark:bg-brand-950/20",
-    border: "border-brand-500/20",
-    iconBg: "text-brand-500",
-    dotBg: "bg-brand-500",
+    color: "text-blue-700 dark:text-blue-400",
+    bg: "bg-blue-50/60 dark:bg-blue-950/25",
+    border: "border-blue-200 dark:border-blue-500/20",
+    iconBg: "text-blue-600 dark:text-blue-400",
+    dotBg: "bg-blue-500",
   },
   IN_REVIEW: {
     label: "In Review",
     icon: AlertCircle,
-    color: "text-indigo-600 dark:text-indigo-400",
-    bg: "bg-indigo-50/20 dark:bg-indigo-950/20",
-    border: "border-indigo-500/20",
-    iconBg: "text-indigo-500",
+    color: "text-indigo-700 dark:text-indigo-400",
+    bg: "bg-indigo-50/60 dark:bg-indigo-950/25",
+    border: "border-indigo-200 dark:border-indigo-500/20",
+    iconBg: "text-indigo-600 dark:text-indigo-400",
     dotBg: "bg-indigo-500",
   },
   BLOCKED: {
     label: "Blocked",
     icon: AlertCircle,
-    color: "text-rose-600 dark:text-rose-400",
-    bg: "bg-rose-50/20 dark:bg-rose-950/20",
-    border: "border-rose-500/20",
-    iconBg: "text-rose-500",
+    color: "text-rose-700 dark:text-rose-400",
+    bg: "bg-rose-50/60 dark:bg-rose-950/25",
+    border: "border-rose-200 dark:border-rose-500/20",
+    iconBg: "text-rose-600 dark:text-rose-400",
     dotBg: "bg-rose-500",
   },
   DONE: {
     label: "Done",
     icon: CheckCircle2,
-    color: "text-emerald-600 dark:text-emerald-400",
-    bg: "bg-emerald-50/20 dark:bg-emerald-950/20",
-    border: "border-emerald-500/20",
-    iconBg: "text-emerald-500",
+    color: "text-emerald-700 dark:text-emerald-400",
+    bg: "bg-emerald-50/60 dark:bg-emerald-950/25",
+    border: "border-emerald-200 dark:border-emerald-500/20",
+    iconBg: "text-emerald-600 dark:text-emerald-400",
     dotBg: "bg-emerald-500",
   },
   CANCELLED: {
     label: "Cancelled",
     icon: Ban,
-    color: "text-neutral-400 dark:text-neutral-500",
-    bg: "bg-neutral-100/30 dark:bg-neutral-900/20",
-    border: "border-neutral-200/40 dark:border-white/5",
-    iconBg: "text-neutral-400",
+    color: "text-neutral-500 dark:text-neutral-400",
+    bg: "bg-neutral-100/50 dark:bg-neutral-900/30",
+    border: "border-neutral-200 dark:border-white/5",
+    iconBg: "text-neutral-400 dark:text-neutral-500",
     dotBg: "bg-neutral-400",
   },
 };
@@ -228,6 +228,27 @@ export default function TasksPage() {
   const projects = useMemo(() => projectsData?.projects ?? [], [projectsData]);
   const initialTaskId = searchParams.get("taskId") || null;
   const [selectedProjectId, setSelectedProjectId] = useState(() => searchParams.get("projectId") || "");
+
+  // Auto-select project from URL param or default to first project when available
+  useEffect(() => {
+    const paramId = searchParams.get("projectId");
+    if (paramId) {
+      if (paramId !== selectedProjectId) {
+        setSelectedProjectId(paramId);
+      }
+    } else if (!selectedProjectId && projects.length > 0) {
+      const firstId = projects[0].id;
+      setSelectedProjectId(firstId);
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set("projectId", firstId);
+          return next;
+        },
+        { replace: true }
+      );
+    }
+  }, [searchParams, projects, selectedProjectId, setSearchParams]);
 
   const [viewMode, setViewMode] = useState<ViewMode>("kanban");
   const [search, setSearch] = useState("");
@@ -451,9 +472,8 @@ export default function TasksPage() {
           <Select
             value={selectedProjectId}
             onChange={(e) => handleProjectChange(e.target.value)}
-            className="w-56 h-10 px-3 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-card-dark text-sm font-medium text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition shadow-sm"
+            className="w-60 h-10 px-3 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-[#0e1626] text-sm font-semibold text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition shadow-sm"
           >
-            <option value="">Choose Workspace…</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
@@ -479,9 +499,13 @@ export default function TasksPage() {
             <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center">
               <FolderKanban className="h-8 w-8" />
             </div>
-            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">Select a Project Workspace</h2>
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">
+              {projects.length === 0 ? "No Projects Available" : "Select a Project Workspace"}
+            </h2>
             <p className="text-neutral-500 dark:text-neutral-400 text-sm max-w-md mx-auto mb-8">
-              Select an active workspace from below to view its Kanban board, track task assignments, and log sprint hours.
+              {projects.length === 0
+                ? "No active project workspaces were found for this organization. Create a project to start planning tasks."
+                : "Select an active workspace from below to view its Kanban board, track task assignments, and log sprint hours."}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto text-left">
@@ -489,7 +513,7 @@ export default function TasksPage() {
                 <div
                   key={p.id}
                   onClick={() => handleProjectChange(p.id)}
-                  className="p-5 rounded-xl border border-neutral-200/70 dark:border-white/10 bg-white/70 dark:bg-card-dark/70 hover:border-brand-500/50 hover:shadow-md transition-all cursor-pointer group"
+                  className="p-5 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-white dark:bg-[#0e1626] hover:border-brand-500/50 hover:shadow-md transition-all cursor-pointer group"
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-brand-500" />
@@ -530,7 +554,7 @@ export default function TasksPage() {
                   setStatusFilter(e.target.value);
                   setPage(1);
                 }}
-                className="h-10 text-xs font-semibold px-3 rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-card-dark text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="h-10 min-w-[135px] text-xs font-semibold px-3 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-[#0e1626] text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-xs"
               >
                 <option value="">All statuses</option>
                 {STATUSES.map((s) => (
@@ -545,7 +569,7 @@ export default function TasksPage() {
                   setPriorityFilter(e.target.value);
                   setPage(1);
                 }}
-                className="h-10 text-xs font-semibold px-3 rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-card-dark text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="h-10 min-w-[130px] text-xs font-semibold px-3 rounded-xl border border-neutral-300 dark:border-white/10 bg-white dark:bg-[#0e1626] text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-xs"
               >
                 <option value="">All priorities</option>
                 {PRIORITIES.map((p) => (
@@ -569,7 +593,7 @@ export default function TasksPage() {
                   onClick={() => setViewMode(key)}
                   className={`p-2 rounded-lg transition-all ${
                     viewMode === key
-                      ? "bg-white dark:bg-card-dark text-brand-600 dark:text-brand-400 shadow-xs"
+                      ? "bg-white dark:bg-[#0e1626] text-brand-600 dark:text-brand-400 shadow-xs"
                       : "text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
                   }`}
                   title={key}
@@ -735,7 +759,7 @@ export default function TasksPage() {
 
                         <div className="space-y-2.5 flex-1 overflow-y-auto max-h-[640px] pr-0.5">
                           {items.length === 0 && (
-                            <div className="h-32 flex flex-col items-center justify-center border border-dashed border-neutral-200/60 dark:border-white/10 rounded-xl text-[11px] text-neutral-400 text-center p-2">
+                            <div className="h-32 flex flex-col items-center justify-center border border-dashed border-neutral-300 dark:border-white/10 rounded-xl text-xs font-medium text-neutral-400 dark:text-neutral-500 text-center p-2">
                               Drop tasks here
                             </div>
                           )}
@@ -745,16 +769,16 @@ export default function TasksPage() {
                               draggable
                               onDragStart={(e) => handleDragStart(e, task.id, task.status ?? "")}
                               onClick={() => setDetailTaskId(task.id)}
-                              className="bg-white/90 dark:bg-card-dark/90 backdrop-blur-md rounded-xl border border-neutral-200/70 dark:border-white/10 p-3.5 shadow-xs hover:shadow-md hover:border-brand-500/40 transition-all cursor-pointer active:opacity-60 group"
+                              className="bg-white dark:bg-[#0e1626] rounded-xl border border-neutral-200/90 dark:border-white/10 p-3.5 shadow-sm hover:shadow-md hover:border-brand-500/40 transition-all cursor-pointer active:opacity-60 group"
                             >
                               <div className="flex items-start justify-between gap-2 mb-2">
-                                <p className="text-xs font-bold text-neutral-900 dark:text-white leading-snug line-clamp-2 flex-1 group-hover:text-brand-500 transition-colors">
+                                <p className="text-xs font-bold text-neutral-900 dark:text-white leading-snug line-clamp-2 flex-1 group-hover:text-brand-600 dark:group-hover:text-accent-cyan transition-colors">
                                   {task.title}
                                 </p>
                               </div>
 
                               {task.description && (
-                                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mb-2 line-clamp-2">
+                                <p className="text-[11px] text-neutral-600 dark:text-neutral-300 mb-2 line-clamp-2 leading-relaxed">
                                   {task.description}
                                 </p>
                               )}
@@ -769,8 +793,8 @@ export default function TasksPage() {
                               </div>
 
                               {task.dueDate && (
-                                <div className="mt-2 text-[10px] font-semibold text-neutral-400 flex items-center gap-1">
-                                  <CalendarDays className="h-3 w-3" />
+                                <div className="mt-2 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 flex items-center gap-1">
+                                  <CalendarDays className="h-3 w-3 text-neutral-400 dark:text-neutral-500" />
                                   {formatDate(task.dueDate)}
                                 </div>
                               )}
@@ -1070,7 +1094,7 @@ export default function TasksPage() {
                 }}
                 rows={3}
                 placeholder="Add acceptance criteria or technical context…"
-                className="w-full rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-card-dark text-neutral-900 dark:text-white px-3.5 py-2.5 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none transition-colors"
+                className="w-full rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-[#0e1626] text-neutral-900 dark:text-white px-3.5 py-2.5 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none transition-colors"
               />
             </div>
 
@@ -1189,7 +1213,7 @@ export default function TasksPage() {
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Share updates or feedback with team…"
-                  className="flex-1 h-10 rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-card-dark px-3.5 text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+                  className="flex-1 h-10 rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-[#0e1626] px-3.5 text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
                 />
                 <GlassButton
                   type="submit"
@@ -1229,7 +1253,7 @@ export default function TasksPage() {
                 )}
               </div>
               {showMentionList && (
-                <div className="mb-3 max-h-32 overflow-y-auto border border-neutral-200 dark:border-white/10 rounded-xl p-2.5 space-y-1 bg-neutral-50 dark:bg-card-dark">
+                <div className="mb-3 max-h-32 overflow-y-auto border border-neutral-200 dark:border-white/10 rounded-xl p-2.5 space-y-1 bg-neutral-50 dark:bg-[#0e1626]">
                   {projectMembers.map((m) => (
                     <label
                       key={m.user?.id}
@@ -1286,7 +1310,7 @@ export default function TasksPage() {
                               autoFocus
                               value={editingComment?.text ?? ""}
                               onChange={(e) => setEditingComment({ id: c.id, text: e.target.value })}
-                              className="flex-1 h-9 rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-card-dark px-2.5 text-sm"
+                              className="flex-1 h-9 rounded-xl border border-neutral-300 dark:border-white/10 bg-neutral-50 dark:bg-[#0e1626] px-2.5 text-sm"
                             />
                             <GlassButton size="sm" variant="primary" onClick={() => handleUpdateComment(c.id)}>
                               Save

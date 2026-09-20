@@ -163,6 +163,7 @@ export default {
           900: v('--c-surface-900'),
           950: v('--c-surface-950'),
         },
+        'card-dark': '#0e1626',
 
         // Glassmorphism tokens (CSS variable driven)
         glass: v('--c-glass'),

@@ -152,16 +152,16 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
           onClick={toggle}
           className={cn(
             "inline-flex items-center justify-between gap-2 rounded-lg transition-colors",
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan/40",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40",
             "disabled:cursor-not-allowed disabled:opacity-50",
             className ??
-              "glass px-3 py-2 text-sm border border-glass-border text-text-primary hover:border-accent-cyan/40"
+              "bg-white dark:bg-[#0e1626] px-3 py-2 text-sm border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white hover:border-brand-500/40"
           )}
         >
-          <span className={cn("truncate", !selected && "text-text-muted")}>
+          <span className={cn("truncate", !selected && "text-neutral-400 dark:text-neutral-500")}>
             {selected ? selected.label : placeholder}
           </span>
-          <ChevronDown className="h-4 w-4 flex-shrink-0 opacity-60" />
+          <ChevronDown className="h-4 w-4 flex-shrink-0 text-neutral-400 dark:text-neutral-500" />
         </button>
 
         {createPortal(
@@ -174,7 +174,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
                 exit={{ opacity: 0, y: -8, scale: 0.97 }}
                 transition={{ type: "spring", damping: 30, stiffness: 400 }}
                 style={{ top: coords.top, left: coords.left, minWidth: coords.width }}
-                className="fixed z-[100] max-h-72 overflow-y-auto rounded-xl p-1.5 shadow-2xl bg-white dark:bg-[#0e1424] border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white"
+                className="fixed z-[100] max-h-72 overflow-y-auto rounded-xl p-1.5 shadow-2xl bg-white dark:bg-[#0e1626] border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white"
                 role="listbox"
               >
                 {finalOptions.map((option) => {
@@ -186,9 +186,10 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
                       disabled={option.disabled}
                       onClick={() => selectOption(option.value)}
                       className={cn(
-                        "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
-                        "text-text-primary hover:bg-tint-strong",
-                        isSelected && "bg-accent-cyan/10 text-accent-cyan",
+                        "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors font-medium",
+                        isSelected
+                          ? "bg-brand-500/10 dark:bg-accent-cyan/15 text-brand-700 dark:text-accent-cyan font-bold"
+                          : "text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/10 hover:text-neutral-900 dark:hover:text-white",
                         option.disabled && "cursor-not-allowed opacity-50 hover:bg-transparent"
                       )}
                       role="option"
@@ -196,7 +197,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
                     >
                       {option.icon && <span className="flex-shrink-0">{option.icon}</span>}
                       <span className="flex-1 truncate">{option.label}</span>
-                      {isSelected && <Check className="h-4 w-4 flex-shrink-0 text-accent-cyan" />}
+                      {isSelected && <Check className="h-4 w-4 flex-shrink-0 text-brand-600 dark:text-accent-cyan" />}
                     </button>
                   );
                 })}

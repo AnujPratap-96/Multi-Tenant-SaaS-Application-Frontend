@@ -479,7 +479,7 @@ export default function ProjectDetailPage() {
                         <div
                           key={task.id}
                           onClick={() => navigate(`/dashboard/tasks?projectId=${p.id}&taskId=${task.id}`)}
-                          className="bg-white/90 dark:bg-card-dark/90 backdrop-blur-md rounded-xl p-3.5 border border-neutral-200/70 dark:border-white/10 shadow-sm hover:shadow-md hover:border-brand-500/40 transition-all cursor-pointer group"
+                          className="bg-white dark:bg-[#0e1626] rounded-xl p-3.5 border border-neutral-200/80 dark:border-white/10 shadow-sm hover:shadow-md hover:border-brand-500/40 transition-all cursor-pointer group"
                         >
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <p className="text-sm font-semibold text-neutral-900 dark:text-white group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors line-clamp-2 leading-snug">
@@ -604,7 +604,7 @@ export default function ProjectDetailPage() {
                       <Select
                         value={member.role}
                         onChange={(e) => handleRoleChange(member.userId, e.target.value)}
-                        className="h-8 px-2.5 rounded-lg border border-neutral-200 dark:border-white/10 bg-white dark:bg-card-dark text-xs font-semibold text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+                        className="h-8 px-2.5 rounded-lg border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#0e1626] text-xs font-semibold text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
                       >
                         <option value="MEMBER">Member</option>
                         <option value="MAINTAINER">Maintainer</option>
