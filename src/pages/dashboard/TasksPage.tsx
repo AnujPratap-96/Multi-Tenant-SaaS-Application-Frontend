@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import {
   Plus,
   Columns3,
@@ -23,6 +23,7 @@ import {
   Play,
   Square,
   FolderKanban,
+  ExternalLink,
   type LucideIcon,
 } from "lucide-react";
 import { useProjects } from "@/features/projects/projectsQueries";
@@ -221,6 +222,7 @@ const CREATE_FORM_DEFAULTS: CreateForm = {
 
 export default function TasksPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const currentTenant = useTenantStore((s) => s.currentTenant);
   const { user: currentUser } = useAuthStore();
   const { data: projectsData } = useProjects({ limit: 100 });
@@ -656,8 +658,8 @@ export default function TasksPage() {
                           >
                             <td className="px-5 py-4">
                               <button
-                                onClick={() => setDetailTaskId(task.id)}
-                                className="text-sm font-semibold text-neutral-900 dark:text-white hover:text-brand-500 dark:hover:text-brand-400 text-left transition-colors"
+                                onClick={() => navigate(`/dashboard/tasks/${task.id}`)}
+                                className="text-sm font-semibold text-neutral-900 dark:text-white hover:text-brand-500 dark:hover:text-brand-400 text-left transition-colors cursor-pointer"
                               >
                                 {task.title}
                               </button>
@@ -768,13 +770,16 @@ export default function TasksPage() {
                               key={task.id}
                               draggable
                               onDragStart={(e) => handleDragStart(e, task.id, task.status ?? "")}
-                              onClick={() => setDetailTaskId(task.id)}
+                              onClick={() => navigate(`/dashboard/tasks/${task.id}`)}
                               className="bg-white dark:bg-[#0e1626] rounded-xl border border-neutral-200/90 dark:border-white/10 p-3.5 shadow-sm hover:shadow-md hover:border-brand-500/40 transition-all cursor-pointer active:opacity-60 group"
                             >
                               <div className="flex items-start justify-between gap-2 mb-2">
                                 <p className="text-xs font-bold text-neutral-900 dark:text-white leading-snug line-clamp-2 flex-1 group-hover:text-brand-600 dark:group-hover:text-accent-cyan transition-colors">
                                   {task.title}
                                 </p>
+                                <span className="opacity-0 group-hover:opacity-100 p-0.5 text-neutral-400 hover:text-brand-500 transition-opacity">
+                                  <ExternalLink className="h-3 w-3" />
+                                </span>
                               </div>
 
                               {task.description && (
@@ -838,9 +843,9 @@ export default function TasksPage() {
                         className={`flex-1 min-w-0 cursor-pointer ${
                           task.status === "DONE" ? "line-through text-neutral-400 dark:text-neutral-500" : ""
                         }`}
-                        onClick={() => setDetailTaskId(task.id)}
+                        onClick={() => navigate(`/dashboard/tasks/${task.id}`)}
                       >
-                        <p className="text-sm font-semibold text-neutral-900 dark:text-white truncate">
+                        <p className="text-sm font-semibold text-neutral-900 dark:text-white truncate hover:text-brand-500 transition-colors">
                           {task.title}
                         </p>
                       </div>
@@ -1019,16 +1024,25 @@ export default function TasksPage() {
           <div className="space-y-6">
             {/* Title & Quick Status Bar */}
             <div className="pb-4 border-b border-neutral-200/60 dark:border-white/10">
-              <input
-                defaultValue={detailTask.title}
-                onBlur={(e) => {
-                  const val = e.target.value.trim();
-                  if (val && val !== detailTask.title) {
-                    handleQuickUpdate(detailTask.id, "title", val);
-                  }
-                }}
-                className="w-full text-xl font-bold bg-transparent border-none outline-none text-neutral-900 dark:text-white px-0 focus:ring-0"
-              />
+              <div className="flex items-center justify-between gap-3">
+                <input
+                  defaultValue={detailTask.title}
+                  onBlur={(e) => {
+                    const val = e.target.value.trim();
+                    if (val && val !== detailTask.title) {
+                      handleQuickUpdate(detailTask.id, "title", val);
+                    }
+                  }}
+                  className="w-full text-xl font-bold bg-transparent border-none outline-none text-neutral-900 dark:text-white px-0 focus:ring-0"
+                />
+                <Link
+                  to={`/dashboard/tasks/${detailTask.id}`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-500/10 text-brand-700 dark:text-accent-cyan border border-brand-500/20 hover:bg-brand-500/20 transition-colors shrink-0"
+                  title="Open full page view"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" /> Full Task Page
+                </Link>
+              </div>
               <div className="flex flex-wrap items-center gap-3 mt-3">
                 <div className="flex items-center gap-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Status:</label>

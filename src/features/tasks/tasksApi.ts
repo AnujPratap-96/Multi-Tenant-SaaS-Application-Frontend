@@ -73,15 +73,18 @@ export const tasksApi = {
   activity: (taskId?: string, params: { page?: number; limit?: number } = {}) =>
     api
       .get(`/tasks/${taskId}/activity`, { params })
-      .then((res) => unwrap<{ items: TaskActivity[]; total: number }>(res) ?? { items: [], total: 0 }),
+      .then((res) => {
+        const payload = res.data?.data ?? res.data;
+        return (payload as { items: TaskActivity[]; total: number } | undefined) ?? { items: [], total: 0 };
+      }),
 
   timeEntries: (taskId?: string, params: { page?: number; limit?: number } = {}) =>
     api
       .get(`/time-tracking/tasks/${taskId}/time-entries`, { params })
-      .then(
-        (res) =>
-          (unwrap<{ items: TimeEntry[]; total: number }>(res) ?? { items: [], total: 0 })
-      ),
+      .then((res) => {
+        const payload = res.data?.data ?? res.data;
+        return (payload as { items: TimeEntry[]; total: number } | undefined) ?? { items: [], total: 0 };
+      }),
 
   create: (data: CreateTaskInput) =>
     api.post("/tasks", data).then((res) => unwrap<Task>(res) ?? null),
@@ -104,6 +107,9 @@ export const tasksApi = {
 
   updateComment: (taskId?: string, commentId?: string, comment: string = "") =>
     api.patch(`/tasks/${taskId}/comments/${commentId}`, { comment }),
+
+  deleteComment: (taskId?: string, commentId?: string) =>
+    api.delete(`/tasks/${taskId}/comments/${commentId}`),
 
   startTimer: (taskId?: string, payload: { startedAt?: string; description?: string } = {}) =>
     api.post(`/time-tracking/tasks/${taskId}/time-entries`, payload),

@@ -478,7 +478,7 @@ export default function ProjectDetailPage() {
                       items.map((task) => (
                         <div
                           key={task.id}
-                          onClick={() => navigate(`/dashboard/tasks?projectId=${p.id}&taskId=${task.id}`)}
+                          onClick={() => navigate(`/dashboard/tasks/${task.id}`)}
                           className="bg-white dark:bg-[#0e1626] rounded-xl p-3.5 border border-neutral-200/80 dark:border-white/10 shadow-sm hover:shadow-md hover:border-brand-500/40 transition-all cursor-pointer group"
                         >
                           <div className="flex items-start justify-between gap-2 mb-2">

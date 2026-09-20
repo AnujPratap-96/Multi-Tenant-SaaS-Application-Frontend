@@ -33,6 +33,7 @@ const TenantsPage = lazy(() => import("@/pages/dashboard/TenantsPage"));
 const ProjectsPage = lazy(() => import("@/pages/dashboard/ProjectsPage"));
 const ProjectDetailPage = lazy(() => import("@/pages/dashboard/ProjectDetailPage"));
 const TasksPage = lazy(() => import("@/pages/dashboard/TasksPage"));
+const TaskDetailPage = lazy(() => import("@/pages/dashboard/TaskDetailPage"));
 const MyTasksPage = lazy(() => import("@/pages/dashboard/MyTasksPage"));
 const DepartmentsPage = lazy(() => import("@/pages/dashboard/DepartmentsPage"));
 const TeamPage = lazy(() => import("@/pages/dashboard/TeamPage"));
@@ -96,6 +97,7 @@ export const routes = [
       { path: "projects", element: withLoader(<ProjectsPage />) },
       { path: "projects/:id", element: withLoader(<ProjectDetailPage />) },
       { path: "tasks", element: withLoader(<TasksPage />) },
+      { path: "tasks/:id", element: withLoader(<TaskDetailPage />) },
       { path: "my-tasks", element: withLoader(<MyTasksPage />) },
       { path: "departments", element: withLoader(<DepartmentsPage />) },
       { path: "team", element: withLoader(<TeamPage />) },

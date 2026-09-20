@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { CheckSquare, Circle, Clock, CheckCircle2, AlertCircle, Ban, Inbox } from "lucide-react";
 import { useMyTasks, useUpdateTask } from "@/features/tasks/tasksQueries";
 import { Select } from "@/components/ui/Select";
@@ -68,7 +69,12 @@ export default function MyTasksPage() {
                 return (
                   <tr key={task.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
                     <td className="px-4 py-3">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">{task.title}</p>
+                      <Link
+                        to={`/dashboard/tasks/${task.id}`}
+                        className="text-sm font-medium text-gray-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+                      >
+                        {task.title}
+                      </Link>
                       {task.description && (
                         <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{task.description}</p>
                       )}

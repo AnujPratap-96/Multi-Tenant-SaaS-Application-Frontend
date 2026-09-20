@@ -207,14 +207,27 @@ export const useStartTimer = (taskId?: string) => {
   });
 };
 
-export const useStopTimer = () => {
+export const useDeleteComment = (taskId?: string) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (commentId: string) => tasksApi.deleteComment(taskId, commentId),
+    onSuccess: () => {
+      if (taskId) qc.invalidateQueries({ queryKey: ["task", tenantId(), taskId, "comments"] });
+      toast.success("Comment deleted");
+    },
+    onError: handleError,
+  });
+};
+
+export const useStopTimer = (taskId?: string) => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (entryId: string) => tasksApi.stopTimer(entryId),
     onSuccess: (_data, entryId) => {
+      if (taskId) qc.invalidateQueries({ queryKey: ["task", tenantId(), taskId, "time-entries"] });
       qc.invalidateQueries({ queryKey: ["task", tenantId()] });
       qc.invalidateQueries({ queryKey: ["time-entry", tenantId(), entryId] });
-      toast.success("Timer stopped");
+      toast.success("Timer stopped and hours logged");
     },
     onError: handleError,
   });
