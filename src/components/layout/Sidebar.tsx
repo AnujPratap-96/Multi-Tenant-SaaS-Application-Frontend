@@ -75,7 +75,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const hasTenant = tenants.length > 0;
 
   const sidebarClassName = cn(
-    "fixed left-0 top-14 bottom-0 z-30 w-64 flex flex-col overflow-hidden glass border-r border-glass-border/60 transition-transform duration-300 ease-in-out lg:translate-x-0 bg-midnight-950/80 backdrop-blur-2xl",
+    "fixed left-0 top-14 bottom-0 z-30 w-64 flex flex-col overflow-hidden bg-white/95 dark:bg-[#070b14]/95 border-r border-neutral-200 dark:border-white/10 transition-transform duration-300 ease-in-out lg:translate-x-0 backdrop-blur-2xl shadow-sm",
     isOpen ? "translate-x-0" : "-translate-x-full"
   );
 
@@ -83,7 +83,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 z-20 bg-midnight-950/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-20 bg-black/50 backdrop-blur-sm lg:hidden"
           onClick={() => setIsOpen(false)}
           aria-hidden="true"
         />
@@ -91,7 +91,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
       <aside className={sidebarClassName}>
         {/* Mobile close */}
-        <div className="h-12 flex items-center justify-between px-4 border-b border-glass-border/50 flex-shrink-0 lg:hidden">
+        <div className="h-12 flex items-center justify-between px-4 border-b border-neutral-200 dark:border-white/10 flex-shrink-0 lg:hidden">
           <span className="text-xs font-bold text-text-primary uppercase tracking-wider">Navigation</span>
           <button
             onClick={() => setIsOpen(false)}
@@ -133,7 +133,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                           "flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-150 group relative",
                           isActive
                             ? "bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/30 shadow-sm"
-                            : "text-text-muted hover:bg-surface-800/50 hover:text-text-primary"
+                            : "text-text-muted hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-text-primary"
                         )
                       }
                     >
@@ -144,7 +144,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                               className={cn(
                                 "p-1 rounded-lg transition-colors flex-shrink-0",
                                 isActive
-                                  ? "bg-accent-cyan text-midnight-950 font-bold"
+                                  ? "bg-accent-cyan text-neutral-950 font-bold"
                                   : "text-text-muted group-hover:text-accent-cyan"
                               )}
                             >
@@ -167,16 +167,16 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         </nav>
 
         {/* Command Palette Launcher button at bottom */}
-        <div className="p-3 border-t border-glass-border/50 flex-shrink-0 space-y-2">
+        <div className="p-3 border-t border-neutral-200 dark:border-white/10 flex-shrink-0 space-y-2">
           <button
             onClick={openCommandPalette}
-            className="w-full flex items-center justify-between p-2 rounded-xl glass hover:border-accent-cyan/40 hover:bg-accent-cyan/5 text-text-muted hover:text-text-primary transition-all text-xs group"
+            className="w-full flex items-center justify-between p-2 rounded-xl border border-neutral-200 dark:border-white/10 hover:border-accent-cyan/40 bg-neutral-50 dark:bg-white/[0.02] hover:bg-accent-cyan/5 text-text-muted hover:text-text-primary transition-all text-xs group"
           >
             <span className="flex items-center gap-2">
               <Command className="h-3.5 w-3.5 text-accent-cyan" />
               <span>Search Actions</span>
             </span>
-            <kbd className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-surface-800 text-text-muted border border-glass-border">⌘K</kbd>
+            <kbd className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-neutral-200/80 dark:bg-white/10 text-text-muted border border-neutral-300/60 dark:border-white/10">⌘K</kbd>
           </button>
 
           {/* Active Tenant / Role Badge */}

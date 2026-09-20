@@ -205,10 +205,10 @@ export default function Landing() {
   };
 
   return (
-    <div className="relative min-h-screen bg-canvas font-sans text-text-primary overflow-x-hidden">
+    <div className="relative min-h-screen bg-canvas font-sans text-text-primary">
       {/* Background Aurora Lighting Effect */}
       <div className="aurora pointer-events-none fixed inset-0 z-0" aria-hidden="true" />
-      <div className="absolute inset-0 -z-10 bg-mesh opacity-25 fixed" aria-hidden="true" />
+      <div className="fixed inset-0 -z-10 bg-mesh opacity-25 pointer-events-none" aria-hidden="true" />
 
       {/* ============================================================
           TOP NAVIGATION
@@ -385,26 +385,26 @@ export default function Landing() {
 
           <GlassCard variant="strong" padding="none" className="overflow-hidden border border-accent-cyan/30 shadow-2xl">
             {/* Demo App Window Topbar */}
-            <div className="h-12 bg-surface-950/80 border-b border-glass-border/60 px-4 flex items-center justify-between">
+            <div className="h-12 bg-neutral-100/90 dark:bg-[#070b14]/90 border-b border-neutral-200 dark:border-white/10 px-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="flex gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-danger-500/80" />
                   <div className="w-3 h-3 rounded-full bg-warning-500/80" />
                   <div className="w-3 h-3 rounded-full bg-success-500/80" />
                 </div>
-                <span className="text-xs font-mono text-text-muted ml-3 hidden sm:inline">
+                <span className="text-xs font-mono text-neutral-500 dark:text-neutral-400 ml-3 hidden sm:inline">
                   nexus-console://live-preview
                 </span>
               </div>
 
               {/* Demo Mode Tabs */}
-              <div className="flex items-center gap-1 bg-surface-900/90 p-1 rounded-xl border border-glass-border/40 text-xs">
+              <div className="flex items-center gap-1 bg-neutral-200/80 dark:bg-[#0e1626] p-1 rounded-xl border border-neutral-300/60 dark:border-white/10 text-xs">
                 <button
                   onClick={() => setActiveTab("kanban")}
                   className={`px-3 py-1 rounded-lg font-medium transition-all ${
                     activeTab === "kanban"
-                      ? "bg-accent-cyan text-midnight-950 font-bold shadow"
-                      : "text-text-muted hover:text-text-primary"
+                      ? "bg-accent-cyan text-neutral-950 font-bold shadow"
+                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
                   }`}
                 >
                   Kanban Board
@@ -413,8 +413,8 @@ export default function Landing() {
                   onClick={() => setActiveTab("tenants")}
                   className={`px-3 py-1 rounded-lg font-medium transition-all ${
                     activeTab === "tenants"
-                      ? "bg-accent-cyan text-midnight-950 font-bold shadow"
-                      : "text-text-muted hover:text-text-primary"
+                      ? "bg-accent-cyan text-neutral-950 font-bold shadow"
+                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
                   }`}
                 >
                   Multi-Tenant
@@ -423,8 +423,8 @@ export default function Landing() {
                   onClick={() => setActiveTab("rbac")}
                   className={`px-3 py-1 rounded-lg font-medium transition-all ${
                     activeTab === "rbac"
-                      ? "bg-accent-cyan text-midnight-950 font-bold shadow"
-                      : "text-text-muted hover:text-text-primary"
+                      ? "bg-accent-cyan text-neutral-950 font-bold shadow"
+                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
                   }`}
                 >
                   RBAC Matrix
@@ -433,22 +433,22 @@ export default function Landing() {
                   onClick={() => setActiveTab("audit")}
                   className={`px-3 py-1 rounded-lg font-medium transition-all ${
                     activeTab === "audit"
-                      ? "bg-accent-cyan text-midnight-950 font-bold shadow"
-                      : "text-text-muted hover:text-text-primary"
+                      ? "bg-accent-cyan text-neutral-950 font-bold shadow"
+                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
                   }`}
                 >
                   Audit Stream
                 </button>
               </div>
 
-              <div className="hidden sm:flex items-center gap-2 text-xs text-text-muted">
+              <div className="hidden sm:flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
                 <span className="w-2 h-2 rounded-full bg-success-400 animate-ping" />
                 <span>Live Sandbox</span>
               </div>
             </div>
 
             {/* Demo Screen Interior */}
-            <div className="p-5 sm:p-7 min-h-[420px] bg-canvas/90">
+            <div className="p-5 sm:p-7 min-h-[420px] bg-neutral-50/50 dark:bg-[#05070d]/60">
               <AnimatePresence mode="wait">
                 {/* TAB 1: KANBAN BOARD */}
                 {activeTab === "kanban" && (
@@ -462,11 +462,11 @@ export default function Landing() {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div>
-                        <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                        <h3 className="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">
                           <KanbanSquare className="h-4 w-4 text-accent-cyan" />
                           Interactive Task Velocity Board
                         </h3>
-                        <p className="text-xs text-text-muted">Click any task card to transition its sprint state</p>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">Click any task card to transition its sprint state</p>
                       </div>
                       <span className="text-xs font-mono text-accent-cyan bg-accent-cyan/10 px-2.5 py-1 rounded-full border border-accent-cyan/20">
                         {demoTasks.filter((t) => t.status === "done").length} / {demoTasks.length} Completed
@@ -475,10 +475,10 @@ export default function Landing() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {/* Column: To-Do */}
-                      <div className="glass rounded-xl p-3.5 border-glass-border/40">
-                        <div className="flex items-center justify-between text-xs font-bold text-text-muted uppercase tracking-wider mb-3">
+                      <div className="bg-neutral-100/70 dark:bg-white/[0.02] rounded-xl p-3.5 border border-neutral-200 dark:border-white/10">
+                        <div className="flex items-center justify-between text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-3">
                           <span className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-text-muted" /> Backlog
+                            <span className="w-2 h-2 rounded-full bg-neutral-400 dark:bg-neutral-500" /> Backlog
                           </span>
                           <span className="font-mono">{demoTasks.filter((t) => t.status === "todo").length}</span>
                         </div>
@@ -489,26 +489,26 @@ export default function Landing() {
                               <div
                                 key={task.id}
                                 onClick={() => handleCycleTaskStatus(task.id)}
-                                className="p-3 rounded-xl bg-surface-900/90 border border-glass-border hover:border-accent-cyan/50 cursor-pointer transition-all hover:scale-[1.02] shadow-sm"
+                                className="p-3 rounded-xl bg-white dark:bg-[#0e1626] border border-neutral-200 dark:border-white/10 hover:border-accent-cyan/50 cursor-pointer transition-all hover:scale-[1.02] shadow-sm"
                               >
                                 <div className="flex items-center justify-between mb-1.5">
-                                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-800 text-text-muted">
+                                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-300">
                                     {task.tag}
                                   </span>
                                   <span
                                     className={`text-[10px] font-bold ${
                                       task.priority === "Critical"
-                                        ? "text-danger-400"
+                                        ? "text-danger-500 dark:text-danger-400"
                                         : task.priority === "High"
-                                        ? "text-warning-400"
-                                        : "text-text-muted"
+                                        ? "text-warning-500 dark:text-warning-400"
+                                        : "text-neutral-500 dark:text-neutral-400"
                                     }`}
                                   >
                                     {task.priority}
                                   </span>
                                 </div>
-                                <p className="text-xs font-semibold text-text-primary leading-snug">{task.title}</p>
-                                <div className="mt-2.5 flex items-center justify-between text-[11px] text-text-muted">
+                                <p className="text-xs font-semibold text-neutral-900 dark:text-white leading-snug">{task.title}</p>
+                                <div className="mt-2.5 flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400">
                                   <span>{task.assignee}</span>
                                   <span className="text-accent-cyan font-mono text-[10px]">Click to advance →</span>
                                 </div>
@@ -518,7 +518,7 @@ export default function Landing() {
                       </div>
 
                       {/* Column: In Progress */}
-                      <div className="glass rounded-xl p-3.5 border-accent-cyan/30 bg-accent-cyan/[0.03]">
+                      <div className="rounded-xl p-3.5 border border-accent-cyan/30 bg-accent-cyan/[0.04]">
                         <div className="flex items-center justify-between text-xs font-bold text-accent-cyan uppercase tracking-wider mb-3">
                           <span className="flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-accent-cyan animate-pulse" /> In Progress
@@ -532,7 +532,7 @@ export default function Landing() {
                               <div
                                 key={task.id}
                                 onClick={() => handleCycleTaskStatus(task.id)}
-                                className="p-3 rounded-xl bg-surface-900/90 border border-accent-cyan/40 hover:border-accent-cyan cursor-pointer transition-all hover:scale-[1.02] shadow-sm glow-cyan"
+                                className="p-3 rounded-xl bg-white dark:bg-[#0e1626] border border-accent-cyan/40 hover:border-accent-cyan cursor-pointer transition-all hover:scale-[1.02] shadow-sm glow-cyan"
                               >
                                 <div className="flex items-center justify-between mb-1.5">
                                   <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accent-cyan/15 text-accent-cyan">
@@ -541,19 +541,19 @@ export default function Landing() {
                                   <span
                                     className={`text-[10px] font-bold ${
                                       task.priority === "Critical"
-                                        ? "text-danger-400"
+                                        ? "text-danger-500 dark:text-danger-400"
                                         : task.priority === "High"
-                                        ? "text-warning-400"
-                                        : "text-text-muted"
+                                        ? "text-warning-500 dark:text-warning-400"
+                                        : "text-neutral-500 dark:text-neutral-400"
                                     }`}
                                   >
                                     {task.priority}
                                   </span>
                                 </div>
-                                <p className="text-xs font-semibold text-text-primary leading-snug">{task.title}</p>
-                                <div className="mt-2.5 flex items-center justify-between text-[11px] text-text-muted">
+                                <p className="text-xs font-semibold text-neutral-900 dark:text-white leading-snug">{task.title}</p>
+                                <div className="mt-2.5 flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400">
                                   <span>{task.assignee}</span>
-                                  <span className="text-success-400 font-mono text-[10px]">Click to finish →</span>
+                                  <span className="text-emerald-500 dark:text-success-400 font-mono text-[10px]">Click to finish →</span>
                                 </div>
                               </div>
                             ))}
@@ -561,10 +561,10 @@ export default function Landing() {
                       </div>
 
                       {/* Column: Done */}
-                      <div className="glass rounded-xl p-3.5 border-success-500/20 bg-success-500/[0.02]">
-                        <div className="flex items-center justify-between text-xs font-bold text-success-400 uppercase tracking-wider mb-3">
+                      <div className="rounded-xl p-3.5 border border-emerald-500/20 bg-emerald-500/[0.03]">
+                        <div className="flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-success-400 uppercase tracking-wider mb-3">
                           <span className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-success-400" /> Completed
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-success-400" /> Completed
                           </span>
                           <span className="font-mono">{demoTasks.filter((t) => t.status === "done").length}</span>
                         </div>
@@ -575,18 +575,18 @@ export default function Landing() {
                               <div
                                 key={task.id}
                                 onClick={() => handleCycleTaskStatus(task.id)}
-                                className="p-3 rounded-xl bg-surface-900/90 border border-success-500/30 hover:border-success-400 cursor-pointer transition-all hover:scale-[1.02] shadow-sm opacity-90"
+                                className="p-3 rounded-xl bg-white/90 dark:bg-[#0e1626]/90 border border-emerald-500/30 hover:border-emerald-400 cursor-pointer transition-all hover:scale-[1.02] shadow-sm opacity-90"
                               >
                                 <div className="flex items-center justify-between mb-1.5">
-                                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-success-500/15 text-success-400">
+                                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-success-400">
                                     {task.tag}
                                   </span>
-                                  <CheckCircle2 className="h-3.5 w-3.5 text-success-400" />
+                                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 dark:text-success-400" />
                                 </div>
-                                <p className="text-xs font-medium text-text-muted line-through leading-snug">{task.title}</p>
-                                <div className="mt-2.5 flex items-center justify-between text-[11px] text-text-muted">
+                                <p className="text-xs font-medium text-neutral-400 dark:text-neutral-500 line-through leading-snug">{task.title}</p>
+                                <div className="mt-2.5 flex items-center justify-between text-[11px] text-neutral-400 dark:text-neutral-500">
                                   <span>{task.assignee}</span>
-                                  <span className="text-text-muted font-mono text-[10px]">Reset ↺</span>
+                                  <span className="font-mono text-[10px]">Reset ↺</span>
                                 </div>
                               </div>
                             ))}
@@ -607,11 +607,11 @@ export default function Landing() {
                     className="space-y-4"
                   >
                     <div>
-                      <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                      <h3 className="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">
                         <Building2 className="h-4 w-4 text-accent-cyan" />
                         Dynamic Tenant Isolation Switcher
                       </h3>
-                      <p className="text-xs text-text-muted">
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400">
                         Select an organization to simulate header injection (`x-tenant-id`) and isolated data tenancy
                       </p>
                     </div>
@@ -626,7 +626,7 @@ export default function Landing() {
                             className={`p-4 rounded-xl cursor-pointer transition-all ${
                               isSelected
                                 ? "bg-accent-cyan/10 border-2 border-accent-cyan shadow-lg glow-cyan"
-                                : "glass border-glass-border hover:border-accent-cyan/40"
+                                : "bg-white dark:bg-[#0e1626] border border-neutral-200 dark:border-white/10 hover:border-accent-cyan/40 shadow-sm"
                             }`}
                           >
                             <div className="flex items-center gap-3 mb-3">
@@ -634,22 +634,22 @@ export default function Landing() {
                                 {tenant.name[0]}
                               </div>
                               <div>
-                                <p className="text-sm font-bold text-text-primary leading-tight">{tenant.name}</p>
+                                <p className="text-sm font-bold text-neutral-900 dark:text-white leading-tight">{tenant.name}</p>
                                 <p className="text-[11px] text-accent-cyan font-mono">{tenant.plan}</p>
                               </div>
                             </div>
-                            <div className="grid grid-cols-3 gap-1 pt-2 border-t border-glass-border/40 text-center text-xs">
+                            <div className="grid grid-cols-3 gap-1 pt-2 border-t border-neutral-100 dark:border-white/10 text-center text-xs">
                               <div>
-                                <p className="font-bold text-text-primary">{tenant.projects}</p>
-                                <p className="text-[10px] text-text-muted">Projects</p>
+                                <p className="font-bold text-neutral-900 dark:text-white">{tenant.projects}</p>
+                                <p className="text-[10px] text-neutral-500 dark:text-neutral-400">Projects</p>
                               </div>
                               <div>
-                                <p className="font-bold text-text-primary">{tenant.members}</p>
-                                <p className="text-[10px] text-text-muted">Seats</p>
+                                <p className="font-bold text-neutral-900 dark:text-white">{tenant.members}</p>
+                                <p className="text-[10px] text-neutral-500 dark:text-neutral-400">Seats</p>
                               </div>
                               <div>
-                                <p className="font-bold text-text-primary">{tenant.storage}</p>
-                                <p className="text-[10px] text-text-muted">Storage</p>
+                                <p className="font-bold text-neutral-900 dark:text-white">{tenant.storage}</p>
+                                <p className="text-[10px] text-neutral-500 dark:text-neutral-400">Storage</p>
                               </div>
                             </div>
                           </div>
@@ -658,25 +658,25 @@ export default function Landing() {
                     </div>
 
                     {/* Active Context Simulation Box */}
-                    <div className="glass rounded-xl p-4 border-accent-cyan/30 bg-surface-950/60 font-mono text-xs space-y-2">
-                      <div className="flex items-center justify-between text-text-muted border-b border-glass-border/40 pb-2">
+                    <div className="rounded-xl p-4 border border-neutral-800 dark:border-white/10 bg-neutral-950 dark:bg-[#070b14] font-mono text-xs space-y-2 text-neutral-200 shadow-inner">
+                      <div className="flex items-center justify-between text-neutral-400 border-b border-neutral-800 dark:border-white/10 pb-2">
                         <span className="flex items-center gap-1 text-accent-cyan font-bold">
                           <Database className="h-3.5 w-3.5" /> Row-Level Tenant Security Context
                         </span>
-                        <span className="text-[11px] text-success-400">● Isolation Enforced</span>
+                        <span className="text-[11px] text-emerald-400 font-medium">● Isolation Enforced</span>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-text-secondary">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-neutral-300">
                         <div>
-                          <span className="text-text-muted">x-tenant-id:</span> &quot;{selectedTenant.id}-org-uuid&quot;
+                          <span className="text-neutral-500">x-tenant-id:</span> &quot;{selectedTenant.id}-org-uuid&quot;
                         </div>
                         <div>
-                          <span className="text-text-muted">redis-cache-namespace:</span> &quot;tenant:{selectedTenant.id}:*&quot;
+                          <span className="text-neutral-500">redis-cache-namespace:</span> &quot;tenant:{selectedTenant.id}:*&quot;
                         </div>
                         <div>
-                          <span className="text-text-muted">postgres-rls-filter:</span> &quot;WHERE tenant_id = &apos;{selectedTenant.id}&apos;&quot;
+                          <span className="text-neutral-500">postgres-rls-filter:</span> &quot;WHERE tenant_id = &apos;{selectedTenant.id}&apos;&quot;
                         </div>
                         <div>
-                          <span className="text-text-muted">subscription-quota:</span> &quot;Active ({selectedTenant.plan})&quot;
+                          <span className="text-neutral-500">subscription-quota:</span> &quot;Active ({selectedTenant.plan})&quot;
                         </div>
                       </div>
                     </div>
@@ -695,21 +695,21 @@ export default function Landing() {
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                        <h3 className="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">
                           <ShieldCheck className="h-4 w-4 text-accent-cyan" />
                           Granular Role-Based Security Matrix
                         </h3>
-                        <p className="text-xs text-text-muted">Switch roles to view dynamic permissions resolution</p>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">Switch roles to view dynamic permissions resolution</p>
                       </div>
-                      <div className="flex gap-1.5 bg-surface-900 p-1 rounded-xl border border-glass-border">
+                      <div className="flex gap-1.5 bg-neutral-200/80 dark:bg-[#0e1626] p-1 rounded-xl border border-neutral-300/60 dark:border-white/10">
                         {(["ADMIN", "MANAGER", "MEMBER"] as const).map((r) => (
                           <button
                             key={r}
                             onClick={() => setActiveRbacRole(r)}
                             className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                               activeRbacRole === r
-                                ? "bg-accent-cyan text-midnight-950 font-bold"
-                                : "text-text-muted hover:text-text-primary"
+                                ? "bg-accent-cyan text-neutral-950 font-bold shadow"
+                                : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
                             }`}
                           >
                             {r}
@@ -741,19 +741,19 @@ export default function Landing() {
                             key={idx}
                             className={`p-3 rounded-xl border transition-all flex items-start justify-between gap-3 ${
                               isAllowed
-                                ? "bg-surface-900/80 border-accent-cyan/30"
-                                : "bg-surface-950/40 border-glass-border/30 opacity-50"
+                                ? "bg-white dark:bg-[#0e1626] border-accent-cyan/30 shadow-sm"
+                                : "bg-neutral-100/80 dark:bg-white/[0.02] border-neutral-200 dark:border-white/5 opacity-60"
                             }`}
                           >
                             <div className="min-w-0">
                               <p className="text-xs font-mono font-semibold text-accent-cyan">{item.perm}</p>
-                              <p className="text-[11px] text-text-muted leading-tight mt-0.5">{item.desc}</p>
+                              <p className="text-[11px] text-neutral-600 dark:text-neutral-400 leading-tight mt-0.5">{item.desc}</p>
                             </div>
                             <span
                               className={`flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${
                                 isAllowed
-                                  ? "bg-success-500/15 text-success-400 border border-success-500/30"
-                                  : "bg-danger-500/15 text-danger-400 border border-danger-500/30"
+                                  ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                                  : "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30"
                               }`}
                             >
                               {isAllowed ? "ALLOWED" : "DENIED"}
@@ -777,39 +777,39 @@ export default function Landing() {
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                        <h3 className="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">
                           <Activity className="h-4 w-4 text-accent-cyan" />
                           Cryptographic Compliance Audit Feed
                         </h3>
-                        <p className="text-xs text-text-muted">Real-time immutable ledger with sha256 non-repudiation</p>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">Real-time immutable ledger with sha256 non-repudiation</p>
                       </div>
-                      <span className="flex items-center gap-1.5 text-xs text-success-400 font-mono">
-                        <span className="w-2 h-2 rounded-full bg-success-400 animate-pulse" />
+                      <span className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-success-400 font-mono">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-success-400 animate-pulse" />
                         Listening for events
                       </span>
                     </div>
 
-                    <div className="glass rounded-xl border-glass-border/60 overflow-hidden font-mono text-xs">
-                      <div className="grid grid-cols-4 px-4 py-2.5 bg-surface-950/80 border-b border-glass-border/40 text-text-muted font-semibold text-[11px]">
+                    <div className="rounded-xl border border-neutral-200 dark:border-white/10 overflow-hidden font-mono text-xs shadow-sm bg-white dark:bg-[#0e1626]">
+                      <div className="grid grid-cols-4 px-4 py-2.5 bg-neutral-100 dark:bg-[#070b14] border-b border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-neutral-400 font-semibold text-[11px]">
                         <span>TIMESTAMP</span>
                         <span>ACTOR</span>
                         <span>SECURITY ACTION</span>
                         <span className="text-right">INTEGRITY</span>
                       </div>
-                      <div className="divide-y divide-glass-border/30">
+                      <div className="divide-y divide-neutral-100 dark:divide-white/5">
                         {DEMO_AUDIT_LOGS.map((log) => (
                           <div
                             key={log.id}
-                            className="grid grid-cols-4 px-4 py-3 items-center hover:bg-tint transition-colors text-[11px]"
+                            className="grid grid-cols-4 px-4 py-3 items-center hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors text-[11px]"
                           >
-                            <span className="text-text-muted">{log.time}</span>
-                            <span className="text-text-primary truncate">{log.actor}</span>
+                            <span className="text-neutral-500 dark:text-neutral-400">{log.time}</span>
+                            <span className="text-neutral-900 dark:text-white truncate font-medium">{log.actor}</span>
                             <div>
                               <span className="text-accent-cyan font-bold">{log.action}</span>
-                              <p className="text-[10px] text-text-muted truncate">{log.target}</p>
+                              <p className="text-[10px] text-neutral-500 dark:text-neutral-400 truncate">{log.target}</p>
                             </div>
                             <div className="text-right">
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-success-500/15 text-success-400 border border-success-500/30">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                                 <ShieldCheck className="h-3 w-3" />
                                 {log.status}
                               </span>
@@ -829,14 +829,14 @@ export default function Landing() {
       {/* ============================================================
           ENTERPRISE LOGO / SOCIAL PROOF TICKER
           ============================================================ */}
-      <section className="py-12 border-y border-glass-border/40 bg-surface-950/40 relative z-10">
+      <section className="py-12 border-y border-neutral-200 dark:border-white/10 bg-neutral-100/50 dark:bg-midnight-950/40 relative z-10">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-xs uppercase tracking-[0.25em] text-text-muted font-bold mb-6">
+          <p className="text-xs uppercase tracking-[0.25em] text-neutral-500 dark:text-neutral-400 font-bold mb-6">
             Empowering modern engineering teams worldwide
           </p>
           <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-14 opacity-70 grayscale hover:grayscale-0 transition-all duration-300">
             {["STRIPE", "VERCEL", "SUPABASE", "DATADOG", "SNOWFLAKE", "CLOUDFLARE"].map((logo) => (
-              <span key={logo} className="font-display font-extrabold tracking-wider text-base sm:text-xl text-text-muted hover:text-accent-cyan transition-colors">
+              <span key={logo} className="font-display font-extrabold tracking-wider text-base sm:text-xl text-neutral-600 dark:text-neutral-400 hover:text-accent-cyan transition-colors">
                 {logo}
               </span>
             ))}
@@ -879,10 +879,10 @@ export default function Landing() {
               </div>
 
               {/* Code snippet visualization */}
-              <div className="mt-8 p-4 rounded-xl bg-surface-950/80 border border-glass-border/50 font-mono text-xs text-text-muted space-y-1.5 shadow-inner">
-                <p className="text-accent-cyan">// Express 5.0 Tenant Context Pipeline</p>
+              <div className="mt-8 p-4 rounded-xl bg-neutral-950 dark:bg-[#070b14] border border-neutral-800 dark:border-white/10 font-mono text-xs text-neutral-300 space-y-1.5 shadow-inner">
+                <p className="text-accent-cyan font-semibold">// Express 5.0 Tenant Context Pipeline</p>
                 <p>router.use(requireAccessToken);</p>
-                <p>router.use(resolveTenant); <span className="text-success-400">// Cached in Redis</span></p>
+                <p>router.use(resolveTenant); <span className="text-emerald-400">// Cached in Redis</span></p>
                 <p>router.use(requireTenant); <span className="text-accent-blue">// Injects req.tenantId</span></p>
               </div>
             </div>
@@ -916,7 +916,7 @@ export default function Landing() {
                 Double-submit cookie defense with cross-origin SameSite=None support across Render and Vercel cloud domains.
               </p>
             </div>
-            <div className="mt-6 text-xs text-text-muted font-mono bg-surface-950 p-2.5 rounded-lg border border-glass-border">
+            <div className="mt-6 text-xs text-neutral-600 dark:text-neutral-400 font-mono bg-neutral-100 dark:bg-[#0e1626] p-2.5 rounded-lg border border-neutral-200 dark:border-white/10">
               <span>SHA-256 HMAC protected</span>
             </div>
           </GlassCard>
@@ -948,16 +948,16 @@ export default function Landing() {
           <p className="text-text-muted text-sm mt-2">Traditional monolithic tenancy vs. Nexus Multi-Tenant 2.0</p>
         </div>
 
-        <div className="glass rounded-2xl border border-glass-border/60 overflow-hidden shadow-2xl">
+        <div className="rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#0e1626] overflow-hidden shadow-2xl">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-glass-border/60 bg-surface-950/60 text-xs font-bold text-text-muted uppercase">
+              <tr className="border-b border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-[#070b14] text-xs font-bold text-neutral-600 dark:text-neutral-400 uppercase">
                 <th className="py-4 px-6">Capability</th>
-                <th className="py-4 px-6 text-text-muted">Legacy In-House SaaS</th>
+                <th className="py-4 px-6 text-neutral-500 dark:text-neutral-400">Legacy In-House SaaS</th>
                 <th className="py-4 px-6 text-accent-cyan">Nexus Platform</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-glass-border/30 text-xs sm:text-sm">
+            <tbody className="divide-y divide-neutral-100 dark:divide-white/5 text-xs sm:text-sm">
               {[
                 {
                   cap: "Tenant Isolation",
@@ -985,9 +985,9 @@ export default function Landing() {
                   nexus: "40+ atomic scopes with dynamic permission overrides",
                 },
               ].map((row, i) => (
-                <tr key={i} className="hover:bg-tint transition-colors">
-                  <td className="py-4 px-6 font-bold text-text-primary">{row.cap}</td>
-                  <td className="py-4 px-6 text-text-muted">{row.legacy}</td>
+                <tr key={i} className="hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors">
+                  <td className="py-4 px-6 font-bold text-neutral-900 dark:text-white">{row.cap}</td>
+                  <td className="py-4 px-6 text-neutral-600 dark:text-neutral-400">{row.legacy}</td>
                   <td className="py-4 px-6 text-accent-cyan font-semibold flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-accent-cyan flex-shrink-0" />
                     <span>{row.nexus}</span>
@@ -1019,7 +1019,7 @@ export default function Landing() {
             </span>
             <button
               onClick={() => setAnnualBilling(!annualBilling)}
-              className="w-12 h-6 rounded-full bg-surface-800 p-1 border border-glass-border flex items-center transition-colors"
+              className="w-12 h-6 rounded-full bg-neutral-200 dark:bg-neutral-800 p-1 border border-neutral-300 dark:border-white/10 flex items-center transition-colors"
             >
               <div
                 className={`w-4 h-4 rounded-full bg-accent-cyan shadow transition-transform ${
@@ -1146,7 +1146,7 @@ export default function Landing() {
       {/* ============================================================
           MODERN MULTI-COLUMN FOOTER
           ============================================================ */}
-      <footer className="border-t border-glass-border/60 bg-surface-950/90 pt-16 pb-12 px-4 sm:px-6 lg:px-8 relative z-10 text-xs text-text-muted">
+      <footer className="border-t border-neutral-200 dark:border-white/10 bg-neutral-100/90 dark:bg-[#05070d] pt-16 pb-12 px-4 sm:px-6 lg:px-8 relative z-10 text-xs text-neutral-600 dark:text-neutral-400">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-8 lg:gap-12 mb-12">
           {/* Brand Col */}
           <div className="col-span-2 space-y-4">
@@ -1154,40 +1154,40 @@ export default function Landing() {
               <div className="bg-gradient-to-br from-accent-cyan to-accent-blue p-2 rounded-xl shadow-lg shadow-accent-cyan/20">
                 <Hexagon className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-extrabold text-text-primary font-display tracking-tight">Nexus SaaS</span>
+              <span className="text-xl font-extrabold text-neutral-900 dark:text-white font-display tracking-tight">Nexus SaaS</span>
             </div>
-            <p className="text-sm text-text-muted max-w-sm leading-relaxed">
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 max-w-sm leading-relaxed">
               The next-generation multi-tenant SaaS foundation engineered for zero-trust isolation, departmental permission matrixes, and enterprise project velocity.
             </p>
             <div className="flex items-center gap-2 pt-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-900 border border-glass-border">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span className="text-[11px] font-mono text-text-primary">All Systems Operational</span>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-[#0e1626] border border-neutral-200 dark:border-white/10 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                <span className="text-[11px] font-mono text-neutral-800 dark:text-neutral-200 font-medium">All Systems Operational</span>
               </div>
             </div>
           </div>
 
           {/* Col 1: Product */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary font-display">Product</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white font-display">Product</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#features" onClick={(e) => handleScrollTo(e, "features")} className="hover:text-accent-cyan transition-colors">
+                <a href="#features" onClick={(e) => handleScrollTo(e, "features")} className="text-neutral-600 dark:text-neutral-400 hover:text-accent-cyan dark:hover:text-accent-cyan transition-colors">
                   Multi-Tenant Engine
                 </a>
               </li>
               <li>
-                <a href="#security" onClick={(e) => handleScrollTo(e, "security")} className="hover:text-accent-cyan transition-colors">
+                <a href="#security" onClick={(e) => handleScrollTo(e, "security")} className="text-neutral-600 dark:text-neutral-400 hover:text-accent-cyan dark:hover:text-accent-cyan transition-colors">
                   Role-Based Access Control
                 </a>
               </li>
               <li>
-                <a href="#projects" onClick={(e) => handleScrollTo(e, "projects")} className="hover:text-accent-cyan transition-colors">
+                <a href="#projects" onClick={(e) => handleScrollTo(e, "projects")} className="text-neutral-600 dark:text-neutral-400 hover:text-accent-cyan dark:hover:text-accent-cyan transition-colors">
                   Workspaces & Tasks
                 </a>
               </li>
               <li>
-                <a href="#pricing" onClick={(e) => handleScrollTo(e, "pricing")} className="hover:text-accent-cyan transition-colors">
+                <a href="#pricing" onClick={(e) => handleScrollTo(e, "pricing")} className="text-neutral-600 dark:text-neutral-400 hover:text-accent-cyan dark:hover:text-accent-cyan transition-colors">
                   Enterprise Plans
                 </a>
               </li>
@@ -1196,25 +1196,25 @@ export default function Landing() {
 
           {/* Col 2: Platform & Docs */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary font-display">Resources</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white font-display">Resources</h4>
             <ul className="space-y-2">
               <li>
-                <Link to="/docs" className="hover:text-accent-cyan transition-colors">
+                <Link to="/docs" className="text-neutral-600 dark:text-neutral-400 hover:text-accent-cyan dark:hover:text-accent-cyan transition-colors">
                   Documentation & API
                 </Link>
               </li>
               <li>
-                <Link to="/security" className="hover:text-accent-cyan transition-colors">
+                <Link to="/security" className="text-neutral-600 dark:text-neutral-400 hover:text-accent-cyan dark:hover:text-accent-cyan transition-colors">
                   Security Architecture
                 </Link>
               </li>
               <li>
-                <Link to="/docs" className="hover:text-accent-cyan transition-colors">
+                <Link to="/docs" className="text-neutral-600 dark:text-neutral-400 hover:text-accent-cyan dark:hover:text-accent-cyan transition-colors">
                   Quickstart Guide
                 </Link>
               </li>
               <li>
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-accent-cyan transition-colors">
+                <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-neutral-600 dark:text-neutral-400 hover:text-accent-cyan dark:hover:text-accent-cyan transition-colors">
                   Developer GitHub
                 </a>
               </li>
@@ -1223,25 +1223,25 @@ export default function Landing() {
 
           {/* Col 3: Legal & Trust */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary font-display">Legal & Trust</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white font-display">Legal & Trust</h4>
             <ul className="space-y-2">
               <li>
-                <Link to="/privacy" className="hover:text-accent-cyan transition-colors">
+                <Link to="/privacy" className="text-neutral-600 dark:text-neutral-400 hover:text-accent-cyan dark:hover:text-accent-cyan transition-colors">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link to="/terms" className="hover:text-accent-cyan transition-colors">
+                <Link to="/terms" className="text-neutral-600 dark:text-neutral-400 hover:text-accent-cyan dark:hover:text-accent-cyan transition-colors">
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link to="/security" className="hover:text-accent-cyan transition-colors">
+                <Link to="/security" className="text-neutral-600 dark:text-neutral-400 hover:text-accent-cyan dark:hover:text-accent-cyan transition-colors">
                   Security Center
                 </Link>
               </li>
               <li>
-                <Link to="/privacy" className="hover:text-accent-cyan transition-colors">
+                <Link to="/privacy" className="text-neutral-600 dark:text-neutral-400 hover:text-accent-cyan dark:hover:text-accent-cyan transition-colors">
                   GDPR / CCPA Notice
                 </Link>
               </li>
@@ -1250,15 +1250,15 @@ export default function Landing() {
         </div>
 
         {/* Bottom copyright */}
-        <div className="max-w-7xl mx-auto pt-8 border-t border-glass-border/40 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
+        <div className="max-w-7xl mx-auto pt-8 border-t border-neutral-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="text-neutral-500 dark:text-neutral-400">
             © 2026 Nexus Cloud Platform Inc. All rights reserved. Zero-Trust Multi-Tenant Architecture.
           </div>
           <div className="flex items-center gap-5">
-            <Link to="/privacy" className="hover:text-text-primary transition-colors">Privacy</Link>
-            <Link to="/terms" className="hover:text-text-primary transition-colors">Terms</Link>
-            <Link to="/security" className="hover:text-text-primary transition-colors">Security</Link>
-            <Link to="/docs" className="hover:text-text-primary transition-colors">API Docs</Link>
+            <Link to="/privacy" className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">Privacy</Link>
+            <Link to="/terms" className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">Terms</Link>
+            <Link to="/security" className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">Security</Link>
+            <Link to="/docs" className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">API Docs</Link>
           </div>
         </div>
       </footer>

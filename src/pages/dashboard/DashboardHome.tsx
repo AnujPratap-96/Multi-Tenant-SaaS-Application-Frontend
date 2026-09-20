@@ -377,7 +377,7 @@ export default function DashboardHome() {
               ) : recentProjects && recentProjects.length > 0 ? (
                 <table className="w-full text-left text-sm">
                   <thead>
-                    <tr className="border-b border-glass-border/50 bg-surface-950/40 text-xs font-semibold text-text-muted uppercase">
+                    <tr className="border-b border-glass-border/50 bg-neutral-100/70 dark:bg-black/20 text-xs font-semibold text-text-muted uppercase">
                       <th className="px-5 py-3">Project Workspace</th>
                       <th className="px-5 py-3">Status</th>
                       <th className="px-5 py-3">Members</th>

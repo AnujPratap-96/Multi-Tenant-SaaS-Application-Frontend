@@ -345,7 +345,7 @@ export default function ProjectsPage() {
                     </div>
 
                     {/* Card Footer Metrics */}
-                    <div className="px-5 py-3 border-t border-glass-border/40 bg-surface-950/40 flex items-center justify-between text-xs text-text-muted">
+                    <div className="px-5 py-3 border-t border-glass-border/40 bg-neutral-50/80 dark:bg-black/20 flex items-center justify-between text-xs text-text-muted">
                       <div className="flex items-center gap-4">
                         <span className="flex items-center gap-1.5">
                           <Users className="h-3.5 w-3.5 text-accent-cyan" />

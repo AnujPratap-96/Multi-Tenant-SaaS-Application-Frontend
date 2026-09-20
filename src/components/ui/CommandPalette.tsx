@@ -315,7 +315,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleClose}
-            className="fixed inset-0 bg-midnight-950/70 backdrop-blur-md"
+            className="fixed inset-0 bg-black/50 backdrop-blur-md"
           />
 
           {/* Modal dialog */}
@@ -324,10 +324,10 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -10 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-2xl rounded-2xl border border-glass-border/70 bg-midnight-900/90 shadow-2xl backdrop-blur-2xl overflow-hidden z-10"
+            className="relative w-full max-w-2xl rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#0c1220] shadow-2xl backdrop-blur-2xl overflow-hidden z-10"
           >
             {/* Search Input Bar */}
-            <div className="relative flex items-center px-4 py-3.5 border-b border-glass-border/50">
+            <div className="relative flex items-center px-4 py-3.5 border-b border-neutral-200 dark:border-white/10">
               <Search className="h-5 w-5 text-accent-cyan mr-3 flex-shrink-0" />
               <input
                 ref={inputRef}
@@ -348,7 +348,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                   <X className="h-4 w-4" />
                 </button>
               )}
-              <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-mono text-text-muted bg-surface-800/80 rounded border border-glass-border">
+              <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-mono text-text-muted bg-neutral-100 dark:bg-white/10 rounded border border-neutral-200 dark:border-white/10">
                 ESC
               </kbd>
             </div>
@@ -377,15 +377,15 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                       className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all duration-150 ${
                         isSelected
                           ? "bg-accent-cyan/15 text-text-primary border border-accent-cyan/30 shadow-sm"
-                          : "text-text-muted hover:bg-surface-800/40 border border-transparent"
+                          : "text-text-muted hover:bg-neutral-100 dark:hover:bg-white/5 border border-transparent"
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div
                           className={`p-2 rounded-lg flex-shrink-0 transition-colors ${
                             isSelected
-                              ? "bg-accent-cyan text-midnight-950 font-bold"
-                              : "bg-surface-800 text-text-muted"
+                              ? "bg-accent-cyan text-neutral-950 font-bold"
+                              : "bg-neutral-100 dark:bg-white/10 text-text-muted"
                           }`}
                         >
                           <Icon className="h-4 w-4" />
@@ -407,11 +407,11 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                       </div>
 
                       <div className="flex items-center gap-2 flex-shrink-0 ml-3">
-                        <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-surface-800/60 text-text-muted/80">
+                        <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-neutral-100 dark:bg-white/10 text-text-muted">
                           {item.category}
                         </span>
                         {item.shortcut && (
-                          <kbd className="hidden sm:inline-flex text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-800 text-text-muted border border-glass-border">
+                          <kbd className="hidden sm:inline-flex text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-white/10 text-text-muted border border-neutral-200 dark:border-white/10">
                             {item.shortcut}
                           </kbd>
                         )}
@@ -428,15 +428,15 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
             </div>
 
             {/* Footer */}
-            <div className="px-4 py-2.5 bg-surface-950/60 border-t border-glass-border/40 flex items-center justify-between text-[11px] text-text-muted">
+            <div className="px-4 py-2.5 bg-neutral-50 dark:bg-[#070b14] border-t border-neutral-200 dark:border-white/10 flex items-center justify-between text-[11px] text-text-muted">
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 bg-surface-800 rounded border border-glass-border">↑</kbd>
-                  <kbd className="px-1.5 py-0.5 bg-surface-800 rounded border border-glass-border">↓</kbd>
+                  <kbd className="px-1.5 py-0.5 bg-neutral-200/80 dark:bg-white/10 rounded border border-neutral-300 dark:border-white/10">↑</kbd>
+                  <kbd className="px-1.5 py-0.5 bg-neutral-200/80 dark:bg-white/10 rounded border border-neutral-300 dark:border-white/10">↓</kbd>
                   Navigate
                 </span>
                 <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 bg-surface-800 rounded border border-glass-border">↵</kbd>
+                  <kbd className="px-1.5 py-0.5 bg-neutral-200/80 dark:bg-white/10 rounded border border-neutral-300 dark:border-white/10">↵</kbd>
                   Execute
                 </span>
               </div>
