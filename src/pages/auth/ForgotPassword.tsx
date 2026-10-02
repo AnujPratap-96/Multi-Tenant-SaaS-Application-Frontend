@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, ArrowLeft, ArrowRight, Sparkles, Shield, Star, CheckCircle, XCircle } from "lucide-react";
 import { GlassButton } from "@/components/glass/GlassButton";
@@ -20,6 +20,7 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPassword() {
+  const navigate = useNavigate();
   const { addToast } = useToast();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -35,11 +36,20 @@ export default function ForgotPassword() {
   const onSubmit = async (data: ForgotPasswordInput) => {
     try {
       setError("");
-      await api.post("/auth/forgot-password", data);
-      setSuccess(true);
-      addToast("Reset link sent to your email", "success");
+      const response = await api.post<{ data: { requestId: string; purpose: string } }>(
+        "/auth/forgot-password-otp",
+        data
+      );
+      addToast("Password reset code sent to your email", "success");
+      navigate("/verify-otp", {
+        state: {
+          email: data.email,
+          requestId: response.data?.data?.requestId,
+          purpose: "FORGOT_PASSWORD",
+        },
+      });
     } catch (err) {
-      const msg = errorMessage(err, "Failed to send reset link");
+      const msg = errorMessage(err, "Failed to send reset code");
       setError(msg);
       addToast(msg, "error");
     }

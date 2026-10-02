@@ -40,16 +40,10 @@ export default function ResetPassword() {
   });
 
   const onSubmit = async (data: ResetPasswordInput) => {
-    if (!token) {
-      const msg = "Invalid or missing reset token";
-      setError(msg);
-      addToast(msg, "error");
-      return;
-    }
     try {
       setError("");
-      await api.post("/auth/reset-password", {
-        token,
+      await api.post("/auth/forgot-password", {
+        token: token || undefined,
         password: data.password,
       });
       setSuccess(true);
@@ -61,43 +55,7 @@ export default function ResetPassword() {
     }
   };
 
-  if (!token && !success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-        <div className="aurora-static pointer-events-none" aria-hidden="true" />
-        <div className="absolute inset-0 -z-10 bg-mesh opacity-30" aria-hidden="true" />
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md"
-        >
-          <GlassCard variant="elevated" padding="lg" className="w-full border-gradient text-center">
-            <GlassCardHeader>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-danger-500/10 border-danger-500/30 text-danger-400 text-xs font-medium mb-5">
-                <Sparkles className="h-4 w-4" />
-                <span className="uppercase tracking-[0.2em]">Invalid Link</span>
-              </div>
-              <GlassCardTitle className="text-heading-lg">Invalid Reset Token</GlassCardTitle>
-              <GlassCardDescription>
-                This password reset link is invalid or has expired.
-              </GlassCardDescription>
-            </GlassCardHeader>
-            <GlassCardContent>
-              <GlassButton
-                variant="outline"
-                className="w-full"
-                size="lg"
-                onClick={() => navigate("/forgot-password")}
-              >
-                Request New Link
-              </GlassButton>
-            </GlassCardContent>
-          </GlassCard>
-        </motion.div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
