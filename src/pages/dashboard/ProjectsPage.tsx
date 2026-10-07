@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Calendar,
   ArrowRight,
+  AlertTriangle,
 } from "lucide-react";
 import {
   useProjects,
@@ -62,8 +63,9 @@ export default function ProjectsPage() {
   const [form, setForm] = useState(FORM_DEFAULTS);
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [deptSearch, setDeptSearch] = useState("");
 
-  const { data: departmentsData } = useDepartments({ limit: 100 });
+  const { data: departmentsData, isLoading: isDepartmentsLoading } = useDepartments({ limit: 100 });
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -84,6 +86,7 @@ export default function ProjectsPage() {
   const openCreate = () => {
     setEditing(null);
     setForm(FORM_DEFAULTS);
+    setDeptSearch("");
     setErrors({});
     setModalOpen(true);
   };
@@ -95,6 +98,7 @@ export default function ProjectsPage() {
       description: project.description || "",
       departmentIds: (project.departments ?? []).map((d) => d.departmentId),
     });
+    setDeptSearch("");
     setErrors({});
     setModalOpen(true);
   };
@@ -103,8 +107,13 @@ export default function ProjectsPage() {
     const errs: Record<string, string> = {};
     if (!form.name?.trim()) errs.name = "Project name is required";
     else if (form.name.trim().length < 3) errs.name = "Name must be at least 3 characters";
-    if (!editing && (!form.departmentIds || form.departmentIds.length === 0))
-      errs.departments = "Select at least one department";
+    if (!editing) {
+      if (departments.length === 0) {
+        errs.departments = "No departments found. You must create at least one department before creating a project.";
+      } else if (!form.departmentIds || form.departmentIds.length === 0) {
+        errs.departments = "Please select at least one department";
+      }
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -142,9 +151,38 @@ export default function ProjectsPage() {
   const projects = data?.projects ?? [];
   const pagination = data?.pagination ?? { page: 1, totalPages: 1, total: 0 };
   const departments = departmentsData?.departments ?? [];
+  const filteredDepartments = departments.filter((d) =>
+    d.name.toLowerCase().includes(deptSearch.toLowerCase())
+  );
 
   return (
     <div className="space-y-6 max-w-full pb-10">
+      {/* Warning banner when tenant has no departments */}
+      {!isDepartmentsLoading && departments.length === 0 && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-500 glass shadow-md">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
+            <div>
+              <p className="text-xs sm:text-sm font-bold text-neutral-800 dark:text-neutral-100">
+                Department Required to Create Projects
+              </p>
+              <p className="text-xs text-neutral-600 dark:text-neutral-300">
+                You do not have any departments configured yet. Every project must belong to at least one department.
+              </p>
+            </div>
+          </div>
+          <GlassButton
+            type="button"
+            size="sm"
+            variant="secondary"
+            onClick={() => navigate("/dashboard/departments")}
+            className="text-xs font-semibold whitespace-nowrap self-start sm:self-auto border-amber-500/30 text-amber-600 dark:text-amber-400"
+          >
+            Create Department &rarr;
+          </GlassButton>
+        </div>
+      )}
+
       {/* ============================================================
           PAGE HEADER
           ============================================================ */}
@@ -414,44 +452,182 @@ export default function ProjectsPage() {
             />
           </div>
 
-          {!editing && departments.length > 0 && (
+          {/* Department Selection Section */}
+          {!editing ? (
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
+                  Assign Departments <span className="text-rose-500">*</span>
+                </label>
+                {departments.length > 0 && (
+                  <span className="text-[11px] font-medium text-text-muted">
+                    {form.departmentIds.length} of {departments.length} selected
+                  </span>
+                )}
+              </div>
+
+              {isDepartmentsLoading ? (
+                <div className="p-4 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#080d1a] flex items-center justify-center text-xs text-text-muted animate-pulse">
+                  Loading departments...
+                </div>
+              ) : departments.length === 0 ? (
+                <div className="p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-500 dark:text-rose-400 space-y-3">
+                  <div className="flex items-start gap-2.5">
+                    <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5 text-rose-500" />
+                    <div>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                        No Department Found
+                      </h4>
+                      <p className="text-xs text-neutral-700 dark:text-neutral-300 mt-1 leading-relaxed">
+                        Projects must belong to at least one department. You must create a department first before creating a project.
+                      </p>
+                    </div>
+                  </div>
+                  <GlassButton
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      setModalOpen(false);
+                      navigate("/dashboard/departments");
+                    }}
+                    className="w-full text-xs font-semibold flex items-center justify-center gap-1.5 py-2 border-rose-500/30 text-rose-600 dark:text-rose-300"
+                  >
+                    <span>Go to Departments Page</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </GlassButton>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400" />
+                      <input
+                        type="text"
+                        placeholder="Search departments..."
+                        value={deptSearch}
+                        onChange={(e) => setDeptSearch(e.target.value)}
+                        className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#080d1a] text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-accent-cyan"
+                      />
+                    </div>
+                    {filteredDepartments.length > 1 && (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setForm((prev) => ({
+                              ...prev,
+                              departmentIds: Array.from(
+                                new Set([...prev.departmentIds, ...filteredDepartments.map((d) => d.id)])
+                              ),
+                            }));
+                            if (errors.departments) {
+                              setErrors((prev) => ({ ...prev, departments: "" }));
+                            }
+                          }}
+                          className="text-[11px] font-medium text-accent-cyan hover:underline px-1.5 py-0.5"
+                        >
+                          Select All
+                        </button>
+                        <span className="text-neutral-400 text-xs">|</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setForm((prev) => ({
+                              ...prev,
+                              departmentIds: [],
+                            }));
+                          }}
+                          className="text-[11px] font-medium text-text-muted hover:underline px-1.5 py-0.5"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div
+                    className={`grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 rounded-xl border ${
+                      errors.departments
+                        ? "border-rose-500/60 bg-rose-500/5 ring-1 ring-rose-500/30"
+                        : "border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#080d1a]"
+                    } custom-scrollbar`}
+                  >
+                    {filteredDepartments.length === 0 ? (
+                      <p className="col-span-2 text-center py-4 text-xs text-text-muted">
+                        No departments match &ldquo;{deptSearch}&rdquo;
+                      </p>
+                    ) : (
+                      filteredDepartments.map((dept) => {
+                        const isChecked = form.departmentIds.includes(dept.id);
+                        return (
+                          <label
+                            key={dept.id}
+                            className={`flex items-center gap-2.5 p-2.5 rounded-xl cursor-pointer text-xs font-semibold border transition-all ${
+                              isChecked
+                                ? "bg-accent-cyan/15 text-accent-cyan border-accent-cyan/40 shadow-sm"
+                                : "border-neutral-200/80 dark:border-white/5 bg-white dark:bg-[#0c1220] text-neutral-600 dark:text-neutral-400 hover:border-neutral-300 dark:hover:border-white/20"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {
+                                setForm((prev) => ({
+                                  ...prev,
+                                  departmentIds: isChecked
+                                    ? prev.departmentIds.filter((id) => id !== dept.id)
+                                    : [...prev.departmentIds, dept.id],
+                                }));
+                                if (errors.departments) {
+                                  setErrors((prev) => ({ ...prev, departments: "" }));
+                                }
+                              }}
+                              className="rounded border-neutral-300 dark:border-neutral-700 text-accent-cyan focus:ring-accent-cyan h-4 w-4"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate font-semibold text-neutral-900 dark:text-white">
+                                {dept.name}
+                              </p>
+                              {dept.manager && (
+                                <p className="text-[10px] text-text-muted truncate">
+                                  Mgr: {dept.manager.firstName || dept.manager.email}
+                                </p>
+                              )}
+                            </div>
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {errors.departments && (
+                <p className="text-xs text-rose-500 font-medium mt-1.5 flex items-center gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  <span>{errors.departments}</span>
+                </p>
+              )}
+            </div>
+          ) : (
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1.5">
-                Assign Departments *
+                Assigned Departments
               </label>
-              <div className="grid grid-cols-2 gap-2.5 max-h-44 overflow-y-auto p-3 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#080d1a] custom-scrollbar">
-                {departments.map((dept) => {
-                  const isChecked = form.departmentIds.includes(dept.id);
-                  return (
-                    <label
-                      key={dept.id}
-                      className={`flex items-center gap-2.5 p-2.5 rounded-xl cursor-pointer text-xs font-semibold border transition-all ${
-                        isChecked
-                          ? "bg-accent-cyan/15 text-accent-cyan border-accent-cyan/40"
-                          : "border-neutral-200/80 dark:border-white/5 bg-white dark:bg-[#0c1220] text-neutral-600 dark:text-neutral-400 hover:border-neutral-300 dark:hover:border-white/20"
-                      }`}
+              <div className="flex flex-wrap gap-1.5 p-3 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#080d1a]">
+                {(editing.departments ?? []).length > 0 ? (
+                  editing.departments?.map((d) => (
+                    <span
+                      key={d.departmentId}
+                      className="px-2.5 py-1 rounded-lg bg-accent-cyan/15 text-accent-cyan text-xs font-semibold border border-accent-cyan/30"
                     >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => {
-                          setForm((prev) => ({
-                            ...prev,
-                            departmentIds: isChecked
-                              ? prev.departmentIds.filter((id) => id !== dept.id)
-                              : [...prev.departmentIds, dept.id],
-                          }));
-                        }}
-                        className="rounded border-neutral-300 dark:border-neutral-700 text-accent-cyan focus:ring-accent-cyan"
-                      />
-                      <span className="truncate">{dept.name}</span>
-                    </label>
-                  );
-                })}
+                      {d.department?.name || d.departmentId}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-xs text-text-muted">No departments assigned</span>
+                )}
               </div>
-              {errors.departments && (
-                <p className="text-xs text-rose-500 font-medium mt-1.5">{errors.departments}</p>
-              )}
             </div>
           )}
 
@@ -469,10 +645,11 @@ export default function ProjectsPage() {
             <GlassButton
               type="submit"
               variant="primary"
+              disabled={!editing && departments.length === 0}
               isLoading={createProject.isPending || updateProject.isPending}
-              className="font-bold shadow-lg shadow-accent-cyan/25"
+              className="font-bold shadow-lg shadow-accent-cyan/25 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {editing ? "Save Changes" : "Create Project"}
+              {editing ? "Save Changes" : departments.length === 0 ? "Department Required" : "Create Project"}
             </GlassButton>
           </div>
         </form>
