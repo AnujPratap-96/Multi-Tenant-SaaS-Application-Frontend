@@ -164,12 +164,11 @@ api.interceptors.response.use(
     }
 
     // Access token expired — refresh and retry once.
-    // NEVER attempt token refresh for public auth endpoints or requests that opted out.
+    // NEVER attempt token refresh for public auth endpoints.
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !isAuthRoute &&
-      !originalRequest.skipAuthRedirect
+      !isAuthRoute
     ) {
       if (isRefreshing) {
         return new Promise((resolve) => {
@@ -194,7 +193,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (err) {
         refreshSubscribers = [];
-        if (window.location.pathname !== "/login") {
+        if (!originalRequest.skipAuthRedirect && window.location.pathname !== "/login") {
           window.location.href = "/login";
         }
         return Promise.reject(err);
