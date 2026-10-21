@@ -56,6 +56,7 @@ function handleForbidden(error: AxiosError) {
 export const API_BASE_URL =
   (import.meta.env.VITE_API_URL as string | undefined) || "http://localhost:5000/api/v1";
 
+
 export type RetryConfig = InternalAxiosRequestConfig & {
   _csrfRetry?: boolean;
   _retry?: boolean;

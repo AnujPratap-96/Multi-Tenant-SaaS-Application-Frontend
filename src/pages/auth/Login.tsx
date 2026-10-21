@@ -85,6 +85,36 @@ export default function Login() {
     setMethod(newMethod);
   };
 
+  const handleGoogleLogin = () => {
+    const width = 500;
+    const height = 650;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+    const url = `${API_BASE_URL}/auth/google`;
+
+    const popup = window.open(
+      url,
+      "google-oauth-popup",
+      `width=${width},height=${height},left=${left},top=${top},status=no,resizable=yes,scrollbars=yes`
+    );
+
+    if (!popup || popup.closed || typeof popup.closed === "undefined") {
+      window.location.href = url;
+      return;
+    }
+
+    const messageHandler = (event: MessageEvent) => {
+      if (event.data?.type === "OAUTH_SUCCESS" && event.data.user) {
+        window.removeEventListener("message", messageHandler);
+        login(event.data.user);
+        addToast("Welcome back!", "success");
+        navigate("/dashboard");
+      }
+    };
+
+    window.addEventListener("message", messageHandler);
+  };
+
   return (
     <div className="relative overflow-hidden">
       {/* Background */}
@@ -297,7 +327,7 @@ export default function Login() {
                   variant="outline"
                   className="w-full"
                   size="lg"
-                  onClick={() => (window.location.href = `${API_BASE_URL}/auth/google`)}
+                  onClick={handleGoogleLogin}
                 >
                   <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                     <path

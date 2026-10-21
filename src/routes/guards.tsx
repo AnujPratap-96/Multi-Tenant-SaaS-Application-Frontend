@@ -26,14 +26,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 }
 
 export function GuestRoute({ children }: { children: ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuthStore();
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <Spinner />
-      </div>
-    );
-  }
+  const { isAuthenticated } = useAuthStore();
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 }

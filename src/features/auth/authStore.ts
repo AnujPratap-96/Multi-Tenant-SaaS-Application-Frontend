@@ -2,8 +2,8 @@ import { create } from "zustand";
 import { authApi } from "./authApi";
 import type { User } from "@/types/domain";
 
-// F-18/F-19: auth session store. Plain (non-persisted) store — the server
-// session is cookie-based, so the UI state is re-validated on boot via checkAuth.
+// F-18/F-19: auth session store. In-memory state validated on boot via cookie-based checkAuth.
+// Never stores sensitive tokens in localStorage.
 
 interface AuthState {
   user: User | null;
@@ -17,7 +17,7 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false,
 
   login: (user) => set({ user, isAuthenticated: true, isLoading: false }),
 
