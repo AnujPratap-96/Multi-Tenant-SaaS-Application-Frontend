@@ -104,9 +104,9 @@ export default function InvitesTable() {
                   >
                     <td className="px-4 py-3 font-medium text-neutral-900 dark:text-neutral-100">{inv.email}</td>
                     <td className="px-4 py-3">
-                      <Badge label={inv.role} variant={inv.role === "admin"
+                      <Badge label={inv.role} variant={inv.role?.toLowerCase() === "admin"
                         ? "admin"
-                        : inv.role === "manager"
+                        : inv.role?.toLowerCase() === "manager"
                           ? "manager"
                           : "user"} />
                     </td>

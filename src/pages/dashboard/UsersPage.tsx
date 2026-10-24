@@ -214,7 +214,7 @@ function EditUserModal({ open, onClose, user, onSave }: EditUserModalProps) {
 export default function UsersPage() {
   const queryClient = useQueryClient();
   const { role } = usePermissionStore();
-  const isAdmin = role === "admin" || role === "OWNER";
+  const isAdmin = role?.toUpperCase() === "ADMIN" || role?.toUpperCase() === "OWNER";
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");

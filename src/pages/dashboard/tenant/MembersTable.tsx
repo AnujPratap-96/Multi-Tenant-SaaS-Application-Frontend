@@ -281,9 +281,9 @@ export default function MembersTable() {
                           {canManage && !isSelf ? (
                             <RoleSelect member={m} tenantId={currentTenant?.id} disabled={false} />
                           ) : (
-                            <Badge label={m.role} variant={m.role === "admin"
+                            <Badge label={m.role} variant={m.role?.toLowerCase() === "admin"
                               ? "admin"
-                              : m.role === "manager"
+                              : m.role?.toLowerCase() === "manager"
                                 ? "manager"
                                 : "user"} />
                           )}

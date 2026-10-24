@@ -31,7 +31,7 @@ const TABS: TabDef[] = [
 export default function SettingsPage() {
   const { currentTenant } = useTenantStore();
   const { role } = usePermissionStore();
-  const isAdmin = role === "admin" || role === "OWNER";
+  const isAdmin = role?.toUpperCase() === "ADMIN" || role?.toUpperCase() === "OWNER";
 
   const [tab, setTab] = useState("general");
   const [showInvite, setShowInvite] = useState(false);
