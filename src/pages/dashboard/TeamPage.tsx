@@ -49,7 +49,7 @@ function StatusBadge({ status }: { status?: string }) {
 function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const tenantId = useTenantStore((s) => s.currentTenant?.id);
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("user");
+  const [role, setRole] = useState("USER");
   const createInvite = useCreateInvite(tenantId);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -61,7 +61,7 @@ function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) 
         onSuccess: () => {
           onClose();
           setEmail("");
-          setRole("user");
+          setRole("USER");
         },
       }
     );
@@ -89,9 +89,9 @@ function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) 
             onChange={(e) => setRole(e.target.value)}
             className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
           >
-            <option value="admin">Admin</option>
-            <option value="manager">Manager</option>
-            <option value="user">User</option>
+            <option value="ADMIN">Admin</option>
+            <option value="MANAGER">Manager</option>
+            <option value="USER">User</option>
           </Select>
         </div>
         <div className="flex gap-3 justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
@@ -118,7 +118,7 @@ interface EditRoleModalProps {
 }
 
 function EditRoleModal({ open, onClose, member, onSave }: EditRoleModalProps) {
-  const [role, setRole] = useState("user");
+  const [role, setRole] = useState("USER");
 
   const [prevMemberId, setPrevMemberId] = useState<string | null>(null);
   if (member?.userId !== prevMemberId) {
@@ -147,9 +147,9 @@ function EditRoleModal({ open, onClose, member, onSave }: EditRoleModalProps) {
             onChange={(e) => setRole(e.target.value)}
             className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
           >
-            <option value="admin">Admin</option>
-            <option value="manager">Manager</option>
-            <option value="user">User</option>
+            <option value="ADMIN">Admin</option>
+            <option value="MANAGER">Manager</option>
+            <option value="USER">User</option>
           </Select>
         </div>
         <div className="flex gap-3 justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
