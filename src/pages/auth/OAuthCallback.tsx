@@ -53,7 +53,8 @@ export default function OAuthCallback() {
         }
 
         // Hard replace guarantees state sync, cookies active, and avoids React StrictMode navigation drops
-        window.location.replace("/dashboard");
+        const redirect = searchParams.get("redirect") || "/dashboard";
+        window.location.replace(redirect);
       } catch (err: unknown) {
         console.error("Google OAuth exchange failed:", err);
         let msg = "Failed to complete Google authentication. Please try again.";

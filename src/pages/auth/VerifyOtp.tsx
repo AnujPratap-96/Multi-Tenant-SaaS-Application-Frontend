@@ -57,6 +57,7 @@ interface VerifyOtpState {
   email: string;
   purpose: OtpPurpose;
   requestId: string;
+  redirect?: string;
 }
 
 export default function VerifyOtp() {
@@ -150,7 +151,7 @@ export default function VerifyOtp() {
       }
 
       addToast("Code verified successfully!", "success");
-      navigate(NAV_ON_SUCCESS[state.purpose]);
+      navigate(state.purpose === "LOGIN" && state.redirect ? state.redirect : NAV_ON_SUCCESS[state.purpose]);
     } catch (err) {
       const message = errorMessage(err, "Invalid or expired verification code");
       setError(message);

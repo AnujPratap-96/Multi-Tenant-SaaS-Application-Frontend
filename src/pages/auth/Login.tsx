@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Lock, ArrowRight, Sparkles, Shield, Star, Globe, Eye, EyeOff, XCircle, Hexagon } from "lucide-react";
 import { GlassButton } from "@/components/glass/GlassButton";
@@ -29,6 +29,8 @@ type LoginOtpInput = z.infer<typeof loginOtpSchema>;
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/dashboard";
   const { login } = useAuthStore();
   const { addToast } = useToast();
   const [error, setError] = useState("");
@@ -57,7 +59,7 @@ export default function Login() {
       const response = await api.post<{ data: User }>("/auth/login", data);
       login(response.data.data);
       addToast("Welcome back!", "success");
-      navigate("/dashboard");
+      navigate(redirect);
     } catch (err) {
       const msg = errorMessage(err, "Invalid email or password");
       setError(msg);
@@ -70,7 +72,7 @@ export default function Login() {
       setError("");
       const response = await api.post<{ data: { requestId: string } }>("/auth/login-otp", data);
       navigate("/verify-otp", {
-        state: { email: data.email, requestId: response.data.data.requestId, purpose: "LOGIN" },
+        state: { email: data.email, requestId: response.data.data.requestId, purpose: "LOGIN", redirect },
       });
       addToast("Login code sent to your email", "success");
     } catch (err) {
@@ -86,7 +88,7 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${API_BASE_URL}/auth/google`;
+    window.location.href = `${API_BASE_URL}/auth/google?redirect=${encodeURIComponent(redirect)}`;
   };
 
   return (

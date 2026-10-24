@@ -52,8 +52,8 @@ export default function AcceptInvitePage() {
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">You're in!</h2>
           <p className="text-gray-500 text-sm">You've successfully joined the organization.</p>
           <button
-            onClick={() => navigate("/dashboard", { replace: true })}
-            className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors"
+            onClick={() => window.location.replace("/dashboard")}
+            className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer"
           >
             Go to Dashboard
           </button>
