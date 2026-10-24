@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   User,
@@ -9,6 +9,11 @@ import {
   Save,
   CheckCircle,
   AlertCircle,
+  Upload,
+  Camera,
+  Trash2,
+  ChevronDown,
+  Globe,
   type LucideIcon,
 } from "lucide-react";
 import api from "@/lib/axios";
@@ -20,7 +25,7 @@ import { Button } from "@/components/ui/Button";
 import PageLoader from "@/components/ui/PageLoader";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { toast } from "sonner";
-import type { ApiError } from "@/types/domain";
+import type { ApiError, User as DomainUser } from "@/types/domain";
 
 interface ProfileForm {
   firstName: string;
@@ -53,8 +58,11 @@ const errorMessage = (err: unknown, fallback: string) =>
 
 function ProfileSection() {
   const queryClient = useQueryClient();
-  const { user: authUser } = useAuthStore();
+  const { user: authUser, login } = useAuthStore();
   const currentTenant = useTenantStore((s) => s.currentTenant);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showRegional, setShowRegional] = useState(false);
+
   const [form, setForm] = useState<ProfileForm>({
     firstName: "",
     lastName: "",
@@ -76,22 +84,49 @@ function ProfileSection() {
         displayName: authUser.displayName || "",
         jobTitle: authUser.jobTitle || "",
         bio: authUser.bio || "",
-        timezone: authUser.timezone || "",
-        locale: authUser.locale || "",
+        timezone: authUser.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+        locale: authUser.locale || navigator.language || "",
         avatarUrl: authUser.avatarUrl || "",
       });
     }
   }
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file (PNG, JPG, WebP)");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image file must be under 2MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setForm((f) => ({ ...f, avatarUrl: reader.result as string }));
+        toast.success("Photo selected — click Save Changes to persist");
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const mutation = useMutation({
-    mutationFn: async (data: ProfileForm) => {
-      const res = await api.patch("/users/me", { ...data, tenantId: currentTenant?.id });
+    mutationFn: async (payload: Partial<ProfileForm>) => {
+      const res = await api.patch<{ data: DomainUser }>("/users/me", payload);
       return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if (data?.data) {
+        login(data.data);
+      }
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      toast.success("Profile updated");
+      toast.success("Profile updated successfully");
     },
     onError: (err: unknown) => {
       toast.error(errorMessage(err, "Failed to update profile"));
@@ -100,34 +135,106 @@ function ProfileSection() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    mutation.mutate({
+    if (!form.firstName.trim()) {
+      toast.error("First name is required");
+      return;
+    }
+
+    const payload = {
       firstName: form.firstName.trim(),
-      lastName: form.lastName.trim(),
-      displayName: form.displayName.trim(),
-      jobTitle: form.jobTitle.trim(),
-      bio: form.bio.trim(),
-      timezone: form.timezone.trim(),
-      locale: form.locale.trim(),
-      avatarUrl: form.avatarUrl.trim(),
-    });
+      lastName: form.lastName.trim() || null,
+      displayName: form.displayName.trim() || null,
+      jobTitle: form.jobTitle.trim() || null,
+      bio: form.bio.trim() || null,
+      timezone: form.timezone.trim() || null,
+      locale: form.locale.trim() || null,
+      avatarUrl: form.avatarUrl.trim() || null,
+    };
+
+    mutation.mutate(payload as unknown as ProfileForm);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Avatar Section */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 pb-6 border-b border-gray-100 dark:border-gray-800">
+        <div className="relative group">
+          <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gradient-to-br from-primary-500/20 to-accent-cyan/20 border-2 border-primary-500/30 flex items-center justify-center text-primary-500 font-semibold text-2xl shadow-inner">
+            {form.avatarUrl ? (
+              <img
+                src={form.avatarUrl}
+                alt="Profile Avatar"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span>
+                {(form.firstName?.[0] || authUser?.email?.[0] || "U").toUpperCase()}
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="absolute inset-0 rounded-2xl bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+            title="Upload photo"
+          >
+            <Camera className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="w-4 h-4 mr-1.5" />
+              Upload Photo
+            </Button>
+            {form.avatarUrl && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                onClick={() => setForm((f) => ({ ...f, avatarUrl: "" }))}
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Remove
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Supports PNG, JPG, or WebP up to 2MB.
+          </p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        </div>
+      </div>
+
+      {/* Main Info */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            First Name
+            First Name <span className="text-red-500">*</span>
           </label>
           <Input
             value={form.firstName}
             onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
             placeholder="First name"
+            required
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Last Name
+            Last Name <span className="text-xs text-gray-400 font-normal">(optional)</span>
           </label>
           <Input
             value={form.lastName}
@@ -137,96 +244,101 @@ function ProfileSection() {
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Display Name
-        </label>
-        <Input
-          value={form.displayName}
-          onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
-          placeholder="How your name appears to others"
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Display Name <span className="text-xs text-gray-400 font-normal">(optional)</span>
+          </label>
+          <Input
+            value={form.displayName}
+            onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
+            placeholder="How your name appears to others"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Job Title {currentTenant ? <span className="text-gray-400 text-xs font-normal">({currentTenant.name})</span> : null}
+          </label>
+          <Input
+            value={form.jobTitle}
+            onChange={(e) => setForm((f) => ({ ...f, jobTitle: e.target.value }))}
+            placeholder="e.g. Lead Engineer, Product Designer"
+          />
+        </div>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Job Title {currentTenant ? <span className="text-gray-400">(in this workspace)</span> : null}
-        </label>
-        <Input
-          value={form.jobTitle}
-          onChange={(e) => setForm((f) => ({ ...f, jobTitle: e.target.value }))}
-          placeholder="e.g. Frontend Engineer"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Bio
+          Bio <span className="text-xs text-gray-400 font-normal">(optional)</span>
         </label>
         <textarea
           value={form.bio}
           onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
-          placeholder="A short bio…"
+          placeholder="A short note about your role, expertise, or interests…"
           rows={3}
           className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition resize-none"
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Timezone
-          </label>
-          <Input
-            value={form.timezone}
-            onChange={(e) => setForm((f) => ({ ...f, timezone: e.target.value }))}
-            placeholder="e.g. America/New_York"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Locale
-          </label>
-          <Input
-            value={form.locale}
-            onChange={(e) => setForm((f) => ({ ...f, locale: e.target.value }))}
-            placeholder="e.g. en-US"
-          />
-        </div>
-      </div>
-
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Avatar URL
-        </label>
-        <Input
-          value={form.avatarUrl}
-          onChange={(e) => setForm((f) => ({ ...f, avatarUrl: e.target.value }))}
-          placeholder="https://…"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Email
+          Account Email
         </label>
         <Input
           value={authUser?.email || ""}
           disabled
-          className="bg-gray-50 dark:bg-gray-800/50 cursor-not-allowed"
+          className="bg-gray-50 dark:bg-gray-800/50 cursor-not-allowed opacity-80"
         />
-        <p className="text-xs text-gray-500 mt-1">Email cannot be changed.</p>
+        <p className="text-xs text-gray-400 mt-1">Verified login email cannot be changed.</p>
       </div>
 
+      {/* Regional settings disclosure */}
       <div className="pt-2">
+        <button
+          type="button"
+          onClick={() => setShowRegional((v) => !v)}
+          className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+        >
+          <Globe className="w-3.5 h-3.5" />
+          <span>Regional & Localization Preferences</span>
+          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showRegional ? "rotate-180" : ""}`} />
+        </button>
+
+        {showRegional && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3 p-3.5 rounded-xl bg-gray-50/70 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+                Timezone
+              </label>
+              <Input
+                value={form.timezone}
+                onChange={(e) => setForm((f) => ({ ...f, timezone: e.target.value }))}
+                placeholder="e.g. UTC, Asia/Kolkata"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+                Locale
+              </label>
+              <Input
+                value={form.locale}
+                onChange={(e) => setForm((f) => ({ ...f, locale: e.target.value }))}
+                placeholder="e.g. en-US"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="pt-2 flex items-center gap-3">
         <Button type="submit" isLoading={mutation.isPending}>
           <Save className="h-4 w-4 mr-2" />
           Save Changes
         </Button>
         {mutation.isSuccess && (
-          <span className="ml-3 text-sm text-green-600 dark:text-green-400">
-            <CheckCircle className="h-4 w-4 inline mr-1" />
-            Profile updated
+          <span className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+            <CheckCircle className="h-4 w-4" />
+            Saved
           </span>
         )}
       </div>
