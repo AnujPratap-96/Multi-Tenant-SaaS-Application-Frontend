@@ -27,6 +27,7 @@ const VerifyOtp = lazy(() => import("@/pages/auth/VerifyOtp"));
 const ForgotPassword = lazy(() => import("@/pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("@/pages/auth/ResetPassword"));
 const SetPassword = lazy(() => import("@/pages/auth/SetPassword"));
+const OAuthCallback = lazy(() => import("@/pages/auth/OAuthCallback"));
 
 const DashboardHome = lazy(() => import("@/pages/dashboard/DashboardHome"));
 const TenantsPage = lazy(() => import("@/pages/dashboard/TenantsPage"));
@@ -66,6 +67,10 @@ export const routes = [
   {
     path: "/docs",
     element: withLoader(<DocsPage />),
+  },
+  {
+    path: "/auth/callback",
+    element: withLoader(<OAuthCallback />),
   },
   {
     element: (

@@ -107,6 +107,7 @@ const AUTH_ENDPOINTS: string[] = [
   "/auth/forgot-password",
   "/auth/reset-password",
   "/auth/refresh-token",
+  "/auth/google/exchange",
 ];
 
 api.interceptors.request.use(async (config) => {
