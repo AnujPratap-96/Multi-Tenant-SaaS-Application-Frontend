@@ -117,8 +117,12 @@ export default function DashboardHome() {
   const { data: recentActivity, isLoading: activityLoading } = useQuery<AuditLog[]>({
     queryKey: ["dashboard", "recent-activity", currentTenant?.id],
     queryFn: () =>
-      api.get("/audit-logs?limit=5").then((r) => (r.data.data?.logs as AuditLog[]) ?? []),
+      api
+        .get("/audit-logs?limit=5")
+        .then((r) => (r.data.data?.logs as AuditLog[]) ?? [])
+        .catch(() => []),
     enabled: !!currentTenant?.id,
+    retry: false,
   });
 
   const totalTasks = stats?.tasks?.total ?? 0;

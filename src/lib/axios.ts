@@ -161,8 +161,14 @@ api.interceptors.response.use(
         return api(originalRequest);
       }
 
-      // Authorization failure (do not redirect to dashboard if on auth pages)
-      if (!isAuthRoute && !originalRequest.skipAuthRedirect) {
+      // Only trigger full tenant eviction/redirect if the 403 is a true membership eviction error
+      const isTenantEviction =
+        errorMessage.includes("not a member") ||
+        errorMessage.includes("no longer a member") ||
+        errorMessage.includes("access to this tenant is suspended") ||
+        errorMessage.includes("tenant not found");
+
+      if (isTenantEviction && !isAuthRoute && !originalRequest.skipAuthRedirect) {
         handleForbidden(error);
       }
       return Promise.reject(error);
