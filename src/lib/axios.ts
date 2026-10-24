@@ -123,10 +123,13 @@ api.interceptors.request.use(async (config) => {
     /* ignore malformed storage */
   }
 
-  // Attach CSRF token for mutating requests
+  // Attach CSRF token for mutating requests (exempt OAuth exchange endpoint)
   if (MUTATION_METHODS.includes(config.method?.toLowerCase() ?? "")) {
-    const token = await getCsrfToken();
-    if (token) config.headers["x-csrf-token"] = token;
+    const url = config.url || "";
+    if (!url.includes("/auth/google/exchange")) {
+      const token = await getCsrfToken();
+      if (token) config.headers["x-csrf-token"] = token;
+    }
   }
 
   return config;
